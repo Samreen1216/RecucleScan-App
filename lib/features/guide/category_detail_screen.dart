@@ -33,11 +33,17 @@ class CategoryDetailScreen extends StatelessWidget {
                 pinned: true,
                 backgroundColor: category.color,
                 leading: GestureDetector(
-                  onTap: () => context.pop(),
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/guide');
+                    }
+                  },
                   child: Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child:
@@ -50,7 +56,7 @@ class CategoryDetailScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           category.color,
-                          category.color.withOpacity(0.75)
+                          category.color.withValues(alpha: 0.75)
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -81,7 +87,7 @@ class CategoryDetailScreen extends StatelessWidget {
                               category.description,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.85),
+                                color: Colors.white.withValues(alpha: 0.85),
                                 fontSize: 13,
                               ),
                             ),
@@ -91,16 +97,16 @@ class CategoryDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                bottom: TabBar(
+                bottom: const TabBar(
                   indicatorColor: Colors.white,
                   indicatorWeight: 3,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white54,
-                  labelStyle: const TextStyle(
+                  labelStyle: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
-                  tabs: const [
+                  tabs: [
                     Tab(text: 'What Goes In'),
                     Tab(text: 'Keep Out'),
                     Tab(text: 'Tips & Facts'),
@@ -162,9 +168,9 @@ class _ItemListTab extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.07),
+              color: color.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: color.withOpacity(0.2)),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -172,7 +178,7 @@ class _ItemListTab extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: color, size: 16),
@@ -227,7 +233,7 @@ class _TipsTab extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.amberLight,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.amber.withOpacity(0.25)),
+                border: Border.all(color: AppColors.amber.withValues(alpha: 0.25)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +242,7 @@ class _TipsTab extends StatelessWidget {
                     width: 28,
                     height: 28,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.amber,
                       shape: BoxShape.circle,
                     ),
@@ -278,13 +284,13 @@ class _TipsTab extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 category.lightColor,
-                category.lightColor.withOpacity(0.5),
+                category.lightColor.withValues(alpha: 0.5),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: category.color.withOpacity(0.25)),
+            border: Border.all(color: category.color.withValues(alpha: 0.25)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

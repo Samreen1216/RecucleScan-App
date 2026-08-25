@@ -5,7 +5,7 @@ import 'package:recyclescan/core/models/recycling_category.dart';
 class RecyclingData {
   RecyclingData._();
 
-  static List<RecyclingCategory> get categories => [
+  static List<RecyclingCategory> get categories => const [
         RecyclingCategory(
           id: 'plastic',
           name: 'Plastic',

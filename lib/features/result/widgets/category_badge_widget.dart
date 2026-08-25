@@ -15,7 +15,7 @@ class CategoryBadgeWidget extends StatelessWidget {
         color: category.lightColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: category.color.withOpacity(0.3),
+          color: category.color.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -29,7 +29,7 @@ class CategoryBadgeWidget extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: category.color.withOpacity(0.3),
+                  color: category.color.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),

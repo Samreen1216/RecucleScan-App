@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
 
@@ -51,7 +50,7 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryGreen.withOpacity(0.35),
+              color: AppColors.primaryGreen.withValues(alpha: 0.35),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -60,7 +59,7 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
         child: Stack(
           children: [
             // Background leaf decoration
-            Positioned(
+            const Positioned(
               right: -20,
               bottom: -20,
               child: Opacity(
@@ -71,7 +70,7 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
                 ),
               ),
             ),
-            Positioned(
+            const Positioned(
               left: -10,
               top: -15,
               child: Opacity(
@@ -96,7 +95,7 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -125,7 +124,7 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
                       Text(
                         'Point camera at any barcode',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 13,
                         ),
                       ),

@@ -13,17 +13,17 @@ class EcoTipWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             AppColors.amberLight,
-            const Color(0xFFFFF3E0),
+            Color(0xFFFFF3E0),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.amber.withOpacity(0.3),
+          color: AppColors.amber.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -35,7 +35,7 @@ class EcoTipWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.amber.withOpacity(0.2),
+                  color: AppColors.amber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text('💡', style: TextStyle(fontSize: 20)),

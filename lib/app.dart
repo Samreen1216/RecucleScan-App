@@ -70,15 +70,15 @@ class RecycleScanApp extends ConsumerWidget {
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.mintGreen),
+          borderSide: const BorderSide(color: AppColors.mintGreen),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.mintGreen.withOpacity(0.5)),
+          borderSide: BorderSide(color: AppColors.mintGreen.withValues(alpha: 0.5)),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(color: AppColors.primaryGreen, width: 2),
         ),
       ),
     );

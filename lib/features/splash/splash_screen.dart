@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -11,17 +12,20 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    _navigate();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer(const Duration(milliseconds: 2500), _navigate);
   }
 
   Future<void> _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
-    if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
     final hasOnboarded = prefs.getBool('has_onboarded') ?? false;
     if (!mounted) return;
@@ -30,6 +34,12 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       context.go('/onboarding');
     }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -49,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
@@ -105,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen>
               width: 40,
               height: 40,
               child: CircularProgressIndicator(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 strokeWidth: 3,
               ),
             ).animate().fadeIn(delay: 700.ms, duration: 400.ms),

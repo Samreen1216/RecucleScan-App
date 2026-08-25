@@ -75,11 +75,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             pinned: true,
             backgroundColor: category.color,
             leading: GestureDetector(
-              onTap: () => context.pop(),
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
               child: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.arrow_back, color: Colors.white),
@@ -89,7 +95,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [category.color, category.color.withOpacity(0.8)],
+                    colors: [category.color, category.color.withValues(alpha: 0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -122,7 +128,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                         Text(
                           widget.item.brand!,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 14,
                           ),
                         ),
@@ -192,7 +198,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                         color: category.lightColor,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: category.color.withOpacity(0.3)),
+                            color: category.color.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

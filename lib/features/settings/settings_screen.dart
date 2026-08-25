@@ -154,7 +154,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 24),
 
-                  _SectionLabel(label: 'Preferences'),
+                  const _SectionLabel(label: 'Preferences'),
                   const SizedBox(height: 10),
 
                   _SettingsTile(
@@ -172,7 +172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 24),
 
-                  _SectionLabel(label: 'Data'),
+                  const _SectionLabel(label: 'Data'),
                   const SizedBox(height: 10),
 
                   _SettingsTile(
@@ -195,10 +195,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 24),
 
-                  _SectionLabel(label: 'About'),
+                  const _SectionLabel(label: 'About'),
                   const SizedBox(height: 10),
 
-                  _SettingsTile(
+                  const _SettingsTile(
                     icon: Icons.info_outline,
                     iconColor: AppColors.primaryGreen,
                     title: AppStrings.aboutApp,
@@ -207,7 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 10),
 
-                  _SettingsTile(
+                  const _SettingsTile(
                     icon: Icons.eco_outlined,
                     iconColor: AppColors.organicColor,
                     title: 'Powered by RecycleScan',
@@ -217,12 +217,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 40),
 
                   // Footer
-                  Center(
+                  const Center(
                     child: Column(
                       children: [
-                        const Text('♻️', style: TextStyle(fontSize: 32)),
-                        const SizedBox(height: 8),
-                        const Text(
+                        Text('♻️', style: TextStyle(fontSize: 32)),
+                        SizedBox(height: 8),
+                        Text(
                           'RecycleScan',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
@@ -230,7 +230,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             color: AppColors.primaryGreen,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'Making recycling effortless, one scan at a time.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -306,7 +306,7 @@ class _SettingsTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 22),
@@ -364,7 +364,7 @@ class _StatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.25),
+            color: AppColors.primaryGreen.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -381,9 +381,9 @@ class _StatsCard extends StatelessWidget {
           Container(
             width: 1,
             height: 40,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
           ),
-          _StatItem(
+          const _StatItem(
             emoji: '♻️',
             value: 'Active',
             label: 'Eco Status',
@@ -391,9 +391,9 @@ class _StatsCard extends StatelessWidget {
           Container(
             width: 1,
             height: 40,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
           ),
-          _StatItem(
+          const _StatItem(
             emoji: '🌱',
             value: '1.0.0',
             label: 'App Version',
@@ -432,7 +432,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             fontSize: 11,
           ),
         ),

@@ -43,7 +43,7 @@ class _ScanOverlayWidgetState extends State<ScanOverlayWidget>
         // Dark overlay
         ColorFiltered(
           colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.55),
+            Colors.black.withValues(alpha: 0.55),
             BlendMode.srcOut,
           ),
           child: Stack(
@@ -103,7 +103,7 @@ class _ScanOverlayWidgetState extends State<ScanOverlayWidget>
                 width: boxSize - 20,
                 height: 3,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [
                       Colors.transparent,
                       AppColors.mintGreen,
@@ -113,7 +113,7 @@ class _ScanOverlayWidgetState extends State<ScanOverlayWidget>
                   borderRadius: BorderRadius.circular(2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.mintGreen.withOpacity(0.5),
+                      color: AppColors.mintGreen.withValues(alpha: 0.5),
                       blurRadius: 8,
                     ),
                   ],

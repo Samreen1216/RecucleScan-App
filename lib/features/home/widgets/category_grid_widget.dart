@@ -37,7 +37,7 @@ class CategoryGridWidget extends StatelessWidget {
                   color: category.lightColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: category.color.withOpacity(0.3),
+                    color: category.color.withValues(alpha: 0.3),
                     width: 1.5,
                   ),
                 ),
@@ -50,7 +50,7 @@ class CategoryGridWidget extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 category.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,

@@ -60,7 +60,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -73,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: TextButton(
                   onPressed: _completeOnboarding,
-                  child: Text(
+                  child: const Text(
                     AppStrings.skip,
                     style: TextStyle(
                       color: AppColors.textSecondary,
@@ -105,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   SmoothPageIndicator(
                     controller: _controller,
                     count: _pages.length,
-                    effect: ExpandingDotsEffect(
+                    effect: const ExpandingDotsEffect(
                       activeDotColor: AppColors.primaryGreen,
                       dotColor: AppColors.mintGreen,
                       dotHeight: 8,
@@ -185,7 +184,7 @@ class _OnboardingPage extends StatelessWidget {
           Text(
             data.title,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -201,7 +200,7 @@ class _OnboardingPage extends StatelessWidget {
           Text(
             data.description,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
               height: 1.6,

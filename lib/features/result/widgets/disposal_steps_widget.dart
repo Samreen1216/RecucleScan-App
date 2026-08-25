@@ -64,7 +64,7 @@ class DisposalStepsWidget extends StatelessWidget {
             color: category.lightColor,
             borderRadius: BorderRadius.circular(14),
             border:
-                Border.all(color: category.color.withOpacity(0.25)),
+                Border.all(color: category.color.withValues(alpha: 0.25)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +127,7 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +158,7 @@ class _SectionCard extends StatelessWidget {
                     height: 22,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
+                      color: color.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: numbered

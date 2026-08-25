@@ -117,7 +117,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             Text(
                               '${history.length} item${history.length == 1 ? '' : 's'} scanned',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 13,
                               ),
                             ),
@@ -347,10 +347,10 @@ class _HistoryItemCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
                 color: (category?.color ?? AppColors.primaryGreen)
-                    .withOpacity(0.15)),
+                    .withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

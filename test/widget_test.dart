@@ -9,5 +9,6 @@ void main() {
       const ProviderScope(child: RecycleScanApp()),
     );
     expect(find.byType(MaterialApp), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
   });
 }

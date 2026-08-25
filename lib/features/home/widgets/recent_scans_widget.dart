@@ -3,7 +3,6 @@ import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
-import 'package:intl/intl.dart';
 
 class RecentScansWidget extends StatelessWidget {
   final List<ScanItem> items;
@@ -26,7 +25,7 @@ class RecentScansWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.mintGreen.withOpacity(0.4)),
+          border: Border.all(color: AppColors.mintGreen.withValues(alpha: 0.4)),
         ),
         child: Column(
           children: [
@@ -77,7 +76,7 @@ class RecentScansWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: (category?.color ?? AppColors.primaryGreen)
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                 ),
               ),
               child: Column(

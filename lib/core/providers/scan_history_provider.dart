@@ -15,10 +15,12 @@ class ScanHistoryNotifier extends StateNotifier<List<ScanItem>> {
 
   void _load() {
     state = HiveService.getAllScanItems();
-    // Listen for Hive changes
-    HiveService.scanHistory.listenable().addListener(() {
-      state = HiveService.getAllScanItems();
-    });
+    // Listen for Hive changes if box is open
+    if (Hive.isBoxOpen(HiveService.scanHistoryBox)) {
+      HiveService.scanHistory.listenable().addListener(() {
+        state = HiveService.getAllScanItems();
+      });
+    }
   }
 
   Future<void> addItem(ScanItem item) async {

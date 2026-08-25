@@ -42,7 +42,7 @@ class GuideScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          '📖 ' + AppStrings.guideTitle,
+                          '📖 ${AppStrings.guideTitle}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -108,10 +108,10 @@ class _CategoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: category.color.withOpacity(0.2)),
+          border: Border.all(color: category.color.withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
-              color: category.color.withOpacity(0.06),
+              color: category.color.withValues(alpha: 0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -126,7 +126,7 @@ class _CategoryCard extends StatelessWidget {
                 color: category.lightColor,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: category.color.withOpacity(0.3)),
+                    color: category.color.withValues(alpha: 0.3)),
               ),
               child: Icon(category.icon, color: category.color, size: 26),
             ),
@@ -196,7 +196,7 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
