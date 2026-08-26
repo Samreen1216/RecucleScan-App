@@ -57,53 +57,75 @@ class RecentScansWidget extends StatelessWidget {
       );
     }
 
-    return SizedBox(
-      height: 110,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final item = items[index];
-          final category = RecyclingData.categoriesMap[item.categoryId];
-          return GestureDetector(
-            onTap: () => onItemTap(item),
-            child: Container(
-              width: 100,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: category?.lightColor ?? AppColors.lightMint,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: (category?.color ?? AppColors.primaryGreen)
-                      .withValues(alpha: 0.3),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item.imageEmoji ?? '📦',
-                    style: const TextStyle(fontSize: 28),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      scrollDirection: Axis.vertical,
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        final category = RecyclingData.categoriesMap[item.categoryId];
+        return GestureDetector(
+          onTap: () => onItemTap(item),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: category?.lightColor ?? AppColors.lightMint,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: (category?.color ?? AppColors.primaryGreen)
+                    .withValues(alpha: 0.3),
               ),
             ),
-          );
-        },
-      ),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    item.imageEmoji ?? '📦',
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        category?.name ?? 'Unknown',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: category?.color ?? AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

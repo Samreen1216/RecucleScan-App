@@ -11,6 +11,8 @@ import 'package:recyclescan/features/scanner/scanner_screen.dart';
 import 'package:recyclescan/features/settings/settings_screen.dart';
 import 'package:recyclescan/features/splash/splash_screen.dart';
 import 'package:recyclescan/shared/widgets/app_shell.dart';
+import 'package:recyclescan/features/quiz/quiz_screen.dart';
+import 'package:recyclescan/features/quiz/quiz_result_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -54,6 +56,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final item = state.extra as ScanItem;
           return ResultScreen(item: item);
+        },
+      ),
+      GoRoute(
+        path: '/quiz',
+        builder: (context, state) => const QuizScreen(),
+      ),
+      GoRoute(
+        path: '/quiz-result',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return QuizResultScreen(
+            score: extra['score'] as int,
+            total: extra['total'] as int,
+          );
         },
       ),
       GoRoute(

@@ -37,6 +37,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _notificationsEnabled = value);
   }
 
+  Future<void> _showApiKeyDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentKey = prefs.getString('gemini_api_key') ?? '';
+    final controller = TextEditingController(text: currentKey);
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Gemini API Key', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your Google Gemini API key to enable AI Vision object recognition.', style: TextStyle(fontSize: 13)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'AIzaSy...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              await prefs.setString('gemini_api_key', controller.text.trim());
+              if (mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _confirmClearHistory() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -173,6 +212,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 24),
 
                   const _SectionLabel(label: 'Data'),
+                  const SizedBox(height: 10),
+
+                  _SettingsTile(
+                    icon: Icons.key_outlined,
+                    iconColor: AppColors.amber,
+                    title: 'Gemini API Key',
+                    subtitle: 'Required for AI Vision scanning',
+                    onTap: _showApiKeyDialog,
+                  ).animate().fadeIn(delay: 175.ms),
+
                   const SizedBox(height: 10),
 
                   _SettingsTile(

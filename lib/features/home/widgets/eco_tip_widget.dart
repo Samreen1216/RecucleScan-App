@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
-import 'package:recyclescan/core/constants/app_strings.dart';
 
 class EcoTipWidget extends StatelessWidget {
   final String tip;
@@ -11,55 +10,65 @@ class EcoTipWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.amberLight,
-            Color(0xFFFFF3E0),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFE8F5E9), // Soft light-green background
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.amber.withValues(alpha: 0.3),
+          color: AppColors.primaryGreen.withValues(alpha: 0.2),
           width: 1.5,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.amber.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Text('💡', style: TextStyle(fontSize: 20)),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                AppStrings.ecoTip,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryGreen.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(height: 14),
-          Text(
-            tip,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-              height: 1.55,
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Left side: Circular illustration
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              shape: BoxShape.circle,
+            ),
+            child: const Text('💡🌱', style: TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(width: 16),
+          
+          // Center: Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Eco Tip of the Day',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryGreen, // dark forest green
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  tip,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textPrimary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 12),
+          
+          // Right side: Recycling bin illustration
+          const Text('♻️', style: TextStyle(fontSize: 32)),
         ],
       ),
     );

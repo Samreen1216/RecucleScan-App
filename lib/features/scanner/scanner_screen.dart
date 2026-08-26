@@ -1,11 +1,15 @@
-import 'dart:async';
+import 'dart:io';
+import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
+import 'package:recyclescan/core/providers/scanner_provider.dart';
 import 'package:recyclescan/core/services/barcode_lookup_service.dart';
 
 class ScannerScreen extends ConsumerStatefulWidget {
@@ -16,27 +20,30 @@ class ScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _ScannerScreenState extends ConsumerState<ScannerScreen>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  late MobileScannerController _controller;
+    with TickerProviderStateMixin {
+  // ── Camera ──
+  CameraController? _cameraController;
+  List<CameraDescription> _cameras = [];
+  int _selectedCameraIdx = 0;
+  bool _isCameraInitialized = false;
+
+  // ── Animation ──
   late AnimationController _scanLineCtrl;
   late Animation<double> _scanLineAnim;
 
-  bool _isProcessing = false;
-  bool _torchOn = false;
-  bool _paused = false;
-  String? _lastScannedValue;
-  bool _isCameraInitialized = false;
+  // ── MLKit Barcode ──
+  late final BarcodeScanner _barcodeScanner;
+  bool _isProcessingFrame = false;
+  String? _lastDetectedBarcode;
+
+  // ── Gallery ──
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    
-    _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      facing: CameraFacing.back,
-      torchEnabled: false,
-    );
+    _barcodeScanner = BarcodeScanner();
+    _initCamera();
 
     _scanLineCtrl = AnimationController(
       vsync: this,
@@ -46,98 +53,174 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     _scanLineAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _scanLineCtrl, curve: Curves.easeInOut),
     );
-
-    // Explicitly start the controller
-    _startCamera();
   }
 
-  Future<void> _startCamera() async {
+  // ── Camera init ──
+  Future<void> _initCamera() async {
     try {
-      await _controller.start();
-      if (mounted) {
-        setState(() {
-          _isCameraInitialized = true;
-        });
+      _cameras = await availableCameras();
+      if (_cameras.isNotEmpty) {
+        await _setCamera(_cameras[_selectedCameraIdx]);
       }
     } catch (e) {
-      debugPrint('Error starting camera: $e');
+      debugPrint('Camera init error: $e');
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-        return;
-      case AppLifecycleState.resumed:
-        _scanLineCtrl.repeat(reverse: true);
-        if (!_paused && !_isProcessing) {
-          _startCamera();
+  Future<void> _setCamera(CameraDescription desc) async {
+    final prev = _cameraController;
+    final ctrl = CameraController(
+      desc,
+      ResolutionPreset.high,
+      enableAudio: false,
+      imageFormatGroup: Platform.isAndroid
+          ? ImageFormatGroup.nv21
+          : ImageFormatGroup.bgra8888,
+    );
+    _cameraController = ctrl;
+
+    try {
+      await ctrl.initialize();
+      if (mounted) setState(() => _isCameraInitialized = true);
+    } catch (e) {
+      debugPrint('Camera setup error: $e');
+    }
+
+    await prev?.dispose();
+  }
+
+  Future<void> _toggleCamera() async {
+    if (_cameras.length < 2) return;
+    setState(() => _isCameraInitialized = false);
+    _selectedCameraIdx = (_selectedCameraIdx + 1) % _cameras.length;
+    await _setCamera(_cameras[_selectedCameraIdx]);
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_cameraController == null || !_isCameraInitialized) return;
+    final cur = _cameraController!.value.flashMode;
+    await _cameraController!
+        .setFlashMode(cur == FlashMode.torch ? FlashMode.off : FlashMode.torch);
+    setState(() {});
+  }
+
+  // ── Live barcode scanning (called on every camera frame in barcode mode) ──
+  Future<void> _processCameraFrame(CameraImage image) async {
+    if (_isProcessingFrame) return;
+    if (ref.read(scannerProvider).isAnalyzing) return;
+    _isProcessingFrame = true;
+
+    try {
+      final WriteBuffer allBytes = WriteBuffer();
+      for (final plane in image.planes) {
+        allBytes.putUint8List(plane.bytes);
+      }
+
+      final inputImage = InputImage.fromBytes(
+        bytes: allBytes.done().buffer.asUint8List(),
+        metadata: InputImageMetadata(
+          size: Size(image.width.toDouble(), image.height.toDouble()),
+          rotation: InputImageRotation.rotation0deg,
+          format: Platform.isAndroid
+              ? InputImageFormat.nv21
+              : InputImageFormat.bgra8888,
+          bytesPerRow: image.planes.first.bytesPerRow,
+        ),
+      );
+
+      final barcodes = await _barcodeScanner.processImage(inputImage);
+
+      if (barcodes.isNotEmpty && mounted) {
+        final code = barcodes.first.rawValue;
+        if (code != null && code != _lastDetectedBarcode) {
+          _lastDetectedBarcode = code;
+          HapticFeedback.mediumImpact();
+          // Capture a still image so we can use AI Vision if barcode not in DB
+          try {
+            final XFile still = await _cameraController!.takePicture();
+            ref.read(scannerProvider.notifier).analyzeBarcode(
+                  code,
+                  imagePath: still.path,
+                );
+          } catch (_) {
+            // If still capture fails, just do barcode lookup only
+            ref.read(scannerProvider.notifier).analyzeBarcode(code);
+          }
         }
-      case AppLifecycleState.inactive:
-        _scanLineCtrl.stop();
-        _controller.stop();
+      }
+    } catch (e) {
+      debugPrint('Frame processing: $e');
+    } finally {
+      _isProcessingFrame = false;
+    }
+  }
+
+  // ── Shutter pressed (AI Vision mode) ──
+  Future<void> _captureImage() async {
+    if (_cameraController == null || !_isCameraInitialized) return;
+    if (_cameraController!.value.isTakingPicture) return;
+    if (ref.read(scannerProvider).isAnalyzing) return;
+
+    try {
+      HapticFeedback.mediumImpact();
+      final XFile file = await _cameraController!.takePicture();
+      final bytes = await file.readAsBytes();
+      ref.read(scannerProvider.notifier).analyzeImage(bytes: bytes, imagePath: file.path);
+    } catch (e) {
+      debugPrint('Capture error: $e');
+    }
+  }
+
+  // ── Gallery pick (AI Vision mode) ──
+  Future<void> _pickGalleryImage() async {
+    if (ref.read(scannerProvider).isAnalyzing) return;
+    try {
+      final XFile? file =
+          await _imagePicker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (file != null) {
+        final bytes = await file.readAsBytes();
+        ref.read(scannerProvider.notifier)
+            .analyzeImage(bytes: bytes, imagePath: file.path);
+      }
+    } catch (e) {
+      debugPrint('Gallery error: $e');
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _controller.dispose();
+    _cameraController?.dispose();
     _scanLineCtrl.dispose();
+    _barcodeScanner.close();
     super.dispose();
   }
 
-  Future<void> _handleDetection(BarcodeCapture capture) async {
-    if (_isProcessing || _paused) return;
-    if (capture.barcodes.isEmpty) return;
-
-    final barcode = capture.barcodes.first;
-    final rawValue = barcode.rawValue;
-    if (rawValue == null || rawValue.isEmpty) return;
-
-    if (rawValue == _lastScannedValue) return;
-    _lastScannedValue = rawValue;
-
-    setState(() => _isProcessing = true);
-    _paused = true;
-    await _controller.stop();
-
-    HapticFeedback.mediumImpact();
-    await _processBarcode(rawValue);
-  }
-
-  Future<void> _processBarcode(String rawValue) async {
-    final found = BarcodeLookupService.lookupBarcode(rawValue);
-
+  // ── Navigation / error handling ──
+  void _handleStateChange(ScannerState? prev, ScannerState next) {
     if (!mounted) return;
 
-    if (found != null) {
-      await context.push('/result', extra: found);
-    } else {
-      await _showNotFoundSheet(rawValue);
+    if (next.result != null && prev?.result != next.result) {
+      _lastDetectedBarcode = null;
+      context.push('/result', extra: next.result);
+      Future.microtask(() => ref.read(scannerProvider.notifier).reset());
+      return;
     }
 
-    if (mounted) {
-      setState(() {
-        _isProcessing = false;
-        _lastScannedValue = null;
-      });
-      _paused = false;
-      await _startCamera();
+    if (next.error != null && prev?.error != next.error) {
+      if (next.error!.startsWith('NOT_FOUND:')) {
+        final barcode = next.error!.replaceFirst('NOT_FOUND:', '');
+        _lastDetectedBarcode = null;
+        _showNotFoundSheet(barcode);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(next.error!),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ));
+      }
+      Future.microtask(() => ref.read(scannerProvider.notifier).reset());
     }
-  }
-
-  Future<void> _manualScan() async {
-    if (_isProcessing) return;
-    HapticFeedback.lightImpact();
-    await _controller.stop();
-    await Future.delayed(const Duration(milliseconds: 150));
-    await _startCamera();
-    setState(() {});
   }
 
   Future<void> _showNotFoundSheet(String barcode) async {
@@ -145,335 +228,432 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _NotFoundSheet(
-        barcode: barcode,
-        onCategorySelected: (categoryId) {
-          final item = BarcodeLookupService.createManualItem(
-            barcode: barcode,
-            categoryId: categoryId,
-          );
-          Navigator.of(ctx).pop();
-          context.push('/result', extra: item);
-        },
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, color: Colors.grey[300]),
+            const SizedBox(height: 20),
+            const Text('🔍', style: TextStyle(fontSize: 40)),
+            const SizedBox(height: 10),
+            const Text(
+              'Product Not in Database',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Barcode: $barcode',
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Select the correct category manually:',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10, runSpacing: 10, alignment: WrapAlignment.center,
+              children: RecyclingData.categories.map((cat) {
+                return GestureDetector(
+                  onTap: () {
+                    final item = BarcodeLookupService.createManualItem(
+                        barcode: barcode, categoryId: cat.id, name: 'Scanned Product');
+                    Navigator.of(ctx).pop();
+                    context.push('/result', extra: item);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: cat.lightColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: cat.color.withValues(alpha: 0.4), width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(cat.icon, color: cat.color, size: 16),
+                        const SizedBox(width: 6),
+                        Text(cat.name,
+                            style: TextStyle(
+                                color: cat.color,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(scannerProvider);
     final size = MediaQuery.of(context).size;
+
+    ref.listen<ScannerState>(scannerProvider, (prev, next) => _handleStateChange(prev, next));
+
     const boxSize = 270.0;
     final boxTop = (size.height - boxSize) / 2 - 40;
     final boxLeft = (size.width - boxSize) / 2;
+
+    final flashMode = _cameraController?.value.flashMode ?? FlashMode.off;
+    final isTorchOn = flashMode == FlashMode.torch;
+    final isBarcodeMode = state.mode == ScannerMode.barcode;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: MobileScanner(
-              controller: _controller,
-              onDetect: _handleDetection,
-              errorBuilder: (context, error, child) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.camera_alt_outlined, color: Colors.white54, size: 60),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Camera Error\n${error.errorCode.name}',
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Please ensure you have granted camera permissions.',
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: _startCamera,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry Camera'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ],
+          // ── 1. Camera Preview (with live barcode stream in barcode mode) ──
+          SizedBox.expand(
+            child: _isCameraInitialized && _cameraController != null
+                ? isBarcodeMode
+                    ? _LiveBarcodePreview(
+                        controller: _cameraController!,
+                        onFrameAvailable: _processCameraFrame,
+                      )
+                    : CameraPreview(_cameraController!)
+                : Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1E2124), Color(0xFF111214)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.camera_alt_outlined, color: Colors.white38, size: 64),
+                          SizedBox(height: 12),
+                          Text('Starting camera…', style: TextStyle(color: Colors.white38)),
+                        ],
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
           ),
 
-          if (!_isCameraInitialized)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black87,
-                child: const Center(
-                  child: CircularProgressIndicator(color: AppColors.mintGreen),
-                ),
-              ),
-            ),
-
+          // ── 2. Dark overlay with scan hole ──
           Positioned.fill(
             child: CustomPaint(
               painter: _ScanOverlayPainter(
-                boxLeft: boxLeft,
-                boxTop: boxTop,
-                boxSize: boxSize,
-              ),
+                  boxLeft: boxLeft, boxTop: boxTop, boxSize: boxSize),
             ),
           ),
 
+          // ── 3. Animated laser line ──
           AnimatedBuilder(
             animation: _scanLineAnim,
-            builder: (context, _) {
-              return Positioned(
-                left: boxLeft + 12,
-                top: boxTop + _scanLineAnim.value * (boxSize - 6),
-                child: Container(
-                  width: boxSize - 24,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        AppColors.mintGreen,
-                        AppColors.mintGreen,
-                        Colors.transparent,
-                      ],
-                      stops: [0.0, 0.3, 0.7, 1.0],
-                    ),
-                    borderRadius: BorderRadius.circular(2),
-                    boxShadow: [
-                      BoxShadow(
+            builder: (context, _) => Positioned(
+              left: boxLeft + 12,
+              top: boxTop + _scanLineAnim.value * (boxSize - 6),
+              child: Container(
+                width: boxSize - 24,
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      AppColors.mintGreen,
+                      AppColors.mintGreen,
+                      Colors.transparent
+                    ],
+                    stops: [0.0, 0.3, 0.7, 1.0],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
                         color: AppColors.mintGreen.withValues(alpha: 0.7),
                         blurRadius: 6,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
+                        spreadRadius: 1)
+                  ],
                 ),
-              );
-            },
-          ),
-
-          ..._buildCorners(boxLeft, boxTop, boxSize),
-
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _CircleButton(
-                    icon: Icons.arrow_back_rounded,
-                    onTap: () => context.pop(),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Scan Item',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                  _CircleButton(
-                    icon: _torchOn ? Icons.flash_on : Icons.flash_off,
-                    color: _torchOn ? AppColors.amber : null,
-                    onTap: () {
-                      _controller.toggleTorch();
-                      setState(() => _torchOn = !_torchOn);
-                    },
-                  ),
-                ],
               ),
             ),
           ),
 
+          // ── 4. Corner brackets ──
+          ..._buildCorners(boxLeft, boxTop, boxSize),
+
+          // ── 5. Helper label ──
           Positioned(
-            top: boxTop - 44,
+            top: boxTop - 48,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'Point camera at a barcode',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Text(
+                  isBarcodeMode
+                      ? 'Point at a barcode — auto-detects!'
+                      : 'Align item in frame, then tap 📷',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ),
             ),
           ),
 
+          // ── 6. Top header bar ──
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
+            top: 0, left: 0, right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _isProcessing
-                          ? const Text(
-                              '🔍 Searching product...',
-                              key: ValueKey('searching'),
-                              style: TextStyle(
-                                color: AppColors.mintGreen,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            )
-                          : const Text(
-                              'Hold steady for auto-scan, or press the button',
-                              key: ValueKey('hint'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white60,
-                                fontSize: 13,
-                              ),
-                            ),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: _isProcessing ? null : _manualScan,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: double.infinity,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          gradient: _isProcessing
-                              ? const LinearGradient(
-                                  colors: [Color(0xFF555555), Color(0xFF444444)],
-                                )
-                              : const LinearGradient(
-                                  colors: [
-                                    AppColors.primaryGreen,
-                                    AppColors.primaryMedium,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: _isProcessing
-                              ? []
-                              : [
-                                  BoxShadow(
-                                    color: AppColors.primaryGreen.withValues(alpha: 0.45),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _isProcessing
-                                  ? Icons.hourglass_top_rounded
-                                  : Icons.qr_code_scanner_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              _isProcessing ? 'Scanning...' : 'Press to Scan',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: _isProcessing ? null : () => _showNotFoundSheet('MANUAL'),
+                    _CircleButton(
+                        icon: Icons.arrow_back_rounded, onTap: () => context.pop()),
+                    // Mode pill
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(24)),
+                      padding: const EdgeInsets.all(4),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.category_outlined,
-                            color: Colors.white.withValues(alpha: 0.6),
-                            size: 16,
+                          _ModePill(
+                            title: '🤖 AI Vision',
+                            isActive: !isBarcodeMode,
+                            onTap: () => ref
+                                .read(scannerProvider.notifier)
+                                .setMode(ScannerMode.aiVision),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Select category manually',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.65),
-                              fontSize: 13,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.white.withValues(alpha: 0.4),
-                            ),
+                          _ModePill(
+                            title: '📷 Barcode',
+                            isActive: isBarcodeMode,
+                            onTap: () {
+                              ref
+                                  .read(scannerProvider.notifier)
+                                  .setMode(ScannerMode.barcode);
+                              _lastDetectedBarcode = null;
+                            },
                           ),
                         ],
                       ),
+                    ),
+                    _CircleButton(
+                      icon: isTorchOn ? Icons.flash_on : Icons.flash_off,
+                      color: isTorchOn ? AppColors.amber : null,
+                      onTap: _toggleFlash,
                     ),
                   ],
                 ),
               ),
             ),
           ),
+
+          // ── 7. Bottom controls ──
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: Container(
+              padding: const EdgeInsets.only(bottom: 32, top: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.85)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Sample chips (only in AI Vision mode)
+                  if (!isBarcodeMode)
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          _SampleChip(label: '🥤 PET Bottle', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('PET Bottle')),
+                          _SampleChip(label: '🍕 Pizza Box', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Pizza Box')),
+                          _SampleChip(label: '🥫 Alum Can', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Aluminum Can')),
+                          _SampleChip(label: '🔋 Battery', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Lithium Battery')),
+                          _SampleChip(label: '🫙 Glass Jar', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Glass Jar')),
+                          _SampleChip(label: '🍌 Banana', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Banana Peel')),
+                          _SampleChip(label: '📦 Cardboard', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Cardboard Box')),
+                          _SampleChip(label: '☕ Coffee Cup', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Coffee Cup')),
+                        ],
+                      ),
+                    ),
+                  if (isBarcodeMode)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'Auto-scanning… Point camera at any product barcode.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+
+                  // Control row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Gallery
+                      IconButton(
+                        onPressed: isBarcodeMode ? null : _pickGalleryImage,
+                        icon: Icon(
+                          Icons.photo_library_rounded,
+                          color: isBarcodeMode ? Colors.white24 : Colors.white,
+                          size: 28,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.15),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+
+                      // Shutter / auto-badge
+                      GestureDetector(
+                        onTap: isBarcodeMode ? null : _captureImage,
+                        child: Container(
+                          width: 80, height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isBarcodeMode
+                                    ? AppColors.amber.withValues(alpha: 0.5)
+                                    : AppColors.primaryGreen.withValues(alpha: 0.6),
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 64, height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isBarcodeMode
+                                    ? AppColors.amber.withValues(alpha: 0.7)
+                                    : AppColors.primaryGreen,
+                              ),
+                              child: Icon(
+                                isBarcodeMode
+                                    ? Icons.qr_code_scanner
+                                    : Icons.camera_alt_rounded,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Flip
+                      IconButton(
+                        onPressed: _toggleCamera,
+                        icon: const Icon(Icons.flip_camera_ios_rounded,
+                            color: Colors.white, size: 28),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.15),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── 8. Analyzing overlay ──
+          if (state.isAnalyzing)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.7),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 52, height: 52,
+                          child: CircularProgressIndicator(
+                              color: AppColors.primaryGreen, strokeWidth: 4),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          isBarcodeMode
+                              ? '🔍 Looking up product…'
+                              : '🤖 Identifying object…',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isBarcodeMode
+                              ? 'Checking product database'
+                              : 'Running on-device AI',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
   List<Widget> _buildCorners(double boxLeft, double boxTop, double boxSize) {
-    const cornerLen = 26.0;
-    const cornerWidth = 4.0;
-    const color = AppColors.mintGreen;
-    const r = Radius.circular(4);
+    const cLen = 26.0;
+    const cW = 4.0;
+    const col = AppColors.mintGreen;
 
     Widget bracket({bool top = false, bool left = false}) {
       return Positioned(
         left: left ? boxLeft - 1 : null,
-        right: left ? null : MediaQuery.of(context).size.width - boxLeft - boxSize - 1,
+        right: left
+            ? null
+            : MediaQuery.of(context).size.width - boxLeft - boxSize - 1,
         top: top ? boxTop - 1 : null,
-        bottom: top ? null : MediaQuery.of(context).size.height - boxTop - boxSize - 1,
+        bottom: top
+            ? null
+            : MediaQuery.of(context).size.height - boxTop - boxSize - 1,
         child: SizedBox(
-          width: cornerLen,
-          height: cornerLen,
+          width: cLen, height: cLen,
           child: CustomPaint(
             painter: _CornerPainter(
               topLeft: top && left,
               topRight: top && !left,
               bottomLeft: !top && left,
               bottomRight: !top && !left,
-              color: color,
-              strokeWidth: cornerWidth,
-              radius: r,
+              color: col,
+              strokeWidth: cW,
             ),
           ),
         ),
@@ -489,36 +669,71 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 }
 
-class _ScanOverlayPainter extends CustomPainter {
-  final double boxLeft;
-  final double boxTop;
-  final double boxSize;
+// ── Live barcode preview widget (streams frames to MLKit) ──
+class _LiveBarcodePreview extends StatefulWidget {
+  final CameraController controller;
+  final Future<void> Function(CameraImage) onFrameAvailable;
 
-  const _ScanOverlayPainter({
-    required this.boxLeft,
-    required this.boxTop,
-    required this.boxSize,
-  });
+  const _LiveBarcodePreview(
+      {required this.controller, required this.onFrameAvailable});
+
+  @override
+  State<_LiveBarcodePreview> createState() => _LiveBarcodePreviewState();
+}
+
+class _LiveBarcodePreviewState extends State<_LiveBarcodePreview> {
+  bool _streaming = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startStream();
+  }
+
+  Future<void> _startStream() async {
+    if (_streaming) return;
+    try {
+      await widget.controller.startImageStream(widget.onFrameAvailable);
+      _streaming = true;
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    if (_streaming) {
+      widget.controller.stopImageStream().catchError((_) {});
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => CameraPreview(widget.controller);
+}
+
+// ─────────────── Painters / Helpers ───────────────
+
+class _ScanOverlayPainter extends CustomPainter {
+  final double boxLeft, boxTop, boxSize;
+  const _ScanOverlayPainter(
+      {required this.boxLeft, required this.boxTop, required this.boxSize});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withValues(alpha: 0.58);
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.65);
     final scanRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(boxLeft, boxTop, boxSize, boxSize),
-      const Radius.circular(16),
-    );
-
-    final bgPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final holePath = Path()..addRRect(scanRect);
-    final path = Path.combine(PathOperation.difference, bgPath, holePath);
-
+        Rect.fromLTWH(boxLeft, boxTop, boxSize, boxSize),
+        const Radius.circular(16));
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(scanRect)
+      ..fillType = PathFillType.evenOdd;
     canvas.drawPath(path, paint);
-
-    final borderPaint = Paint()
-      ..color = AppColors.mintGreen.withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawRRect(scanRect, borderPaint);
+    canvas.drawRRect(
+        scanRect,
+        Paint()
+          ..color = AppColors.mintGreen.withValues(alpha: 0.4)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
   }
 
   @override
@@ -530,17 +745,13 @@ class _CornerPainter extends CustomPainter {
   final bool topLeft, topRight, bottomLeft, bottomRight;
   final Color color;
   final double strokeWidth;
-  final Radius radius;
-
-  const _CornerPainter({
-    required this.topLeft,
-    required this.topRight,
-    required this.bottomLeft,
-    required this.bottomRight,
-    required this.color,
-    required this.strokeWidth,
-    required this.radius,
-  });
+  const _CornerPainter(
+      {required this.topLeft,
+      required this.topRight,
+      required this.bottomLeft,
+      required this.bottomRight,
+      required this.color,
+      required this.strokeWidth});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -549,12 +760,9 @@ class _CornerPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-
-    final w = size.width;
-    final h = size.height;
-
+    final w = size.width, h = size.height;
     if (topLeft) {
-      canvas.drawLine(const Offset(0, 0), Offset(0, h), p);
+      canvas.drawLine(Offset(0, h), const Offset(0, 0), p);
       canvas.drawLine(const Offset(0, 0), Offset(w, 0), p);
     }
     if (topRight) {
@@ -572,111 +780,73 @@ class _CornerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter _) => false;
 }
 
 class _CircleButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final Color? color;
-
   const _CircleButton({required this.icon, required this.onTap, this.color});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: color ?? Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1),
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(
+            color: color ?? Colors.black.withValues(alpha: 0.6),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
-        child: Icon(icon, color: Colors.white, size: 22),
-      ),
-    );
-  }
+      );
 }
 
-class _NotFoundSheet extends StatelessWidget {
-  final String barcode;
-  final void Function(String categoryId) onCategorySelected;
-
-  const _NotFoundSheet({required this.barcode, required this.onCategorySelected});
+class _ModePill extends StatelessWidget {
+  final String title;
+  final bool isActive;
+  final VoidCallback onTap;
+  const _ModePill({required this.title, required this.isActive, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primaryGreen : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: isActive ? Colors.white : Colors.white70,
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 20),
-          const Text('🔍', style: TextStyle(fontSize: 40)),
-          const SizedBox(height: 10),
-          const Text(
-            'Item Not Found',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 6),
-          if (barcode != 'MANUAL')
-            Text('Barcode: $barcode', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontFamily: 'monospace')),
-          const SizedBox(height: 8),
-          const Text(
-            'Select the category that best matches this item:',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            alignment: WrapAlignment.center,
-            children: RecyclingData.categories.map((cat) {
-              return GestureDetector(
-                onTap: () => onCategorySelected(cat.id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: cat.lightColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: cat.color.withValues(alpha: 0.4), width: 1.5),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(cat.icon, color: cat.color, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        cat.name,
-                        style: TextStyle(
-                          color: cat.color,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
+}
+
+class _SampleChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _SampleChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ActionChip(
+          label: Text(label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          backgroundColor: Colors.white.withValues(alpha: 0.9),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          side: BorderSide.none,
+          onPressed: onTap,
+        ),
+      );
 }

@@ -10,7 +10,7 @@ import 'package:recyclescan/core/providers/scan_history_provider.dart';
 import 'package:recyclescan/features/home/widgets/category_grid_widget.dart';
 import 'package:recyclescan/features/home/widgets/eco_tip_widget.dart';
 import 'package:recyclescan/features/home/widgets/recent_scans_widget.dart';
-import 'package:recyclescan/features/home/widgets/scan_button_widget.dart';
+import 'package:recyclescan/features/home/widgets/recycle_quiz_widget.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -117,10 +117,11 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Scan Button
-                  ScanButtonWidget(
-                    onTap: () => context.push('/scanner'),
-                  ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, delay: 100.ms),
+                  // Eco Tip
+                  EcoTipWidget(tip: ecoTip)
+                      .animate()
+                      .fadeIn(delay: 100.ms)
+                      .slideY(begin: 0.1, delay: 100.ms),
 
                   const SizedBox(height: 28),
 
@@ -147,13 +148,22 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
-                  ).animate().fadeIn(delay: 200.ms),
+                  ).animate().fadeIn(delay: 150.ms),
 
                   const SizedBox(height: 12),
                   CategoryGridWidget(
                     categories: RecyclingData.categories,
                     onCategoryTap: (categoryId) =>
                         context.push('/guide/$categoryId'),
+                  ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, delay: 200.ms),
+
+                  const SizedBox(height: 28),
+
+                  // Recycle Quiz Card
+                  RecycleQuizWidget(
+                    onStartQuiz: () {
+                      context.push('/quiz');
+                    },
                   ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1, delay: 250.ms),
 
                   const SizedBox(height: 28),
@@ -190,14 +200,6 @@ class HomeScreen extends ConsumerWidget {
                     onItemTap: (item) => context.push('/result', extra: item),
                     onScanTap: () => context.push('/scanner'),
                   ).animate().fadeIn(delay: 350.ms),
-
-                  const SizedBox(height: 28),
-
-                  // Eco Tip
-                  EcoTipWidget(tip: ecoTip)
-                      .animate()
-                      .fadeIn(delay: 400.ms)
-                      .slideY(begin: 0.1, delay: 400.ms),
 
                   const SizedBox(height: 20),
                 ],
