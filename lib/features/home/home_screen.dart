@@ -12,15 +12,64 @@ import 'package:recyclescan/features/home/widgets/eco_tip_widget.dart';
 import 'package:recyclescan/features/home/widgets/recent_scans_widget.dart';
 import 'package:recyclescan/features/home/widgets/recycle_quiz_widget.dart';
 
+class DynamicGreetingWidget extends StatefulWidget {
+  const DynamicGreetingWidget({super.key});
+
+  @override
+  State<DynamicGreetingWidget> createState() => _DynamicGreetingWidgetState();
+}
+
+class _DynamicGreetingWidgetState extends State<DynamicGreetingWidget> {
+  late String _greeting;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateGreeting();
+    _startTimer();
+  }
+
+  void _updateGreeting() {
+    final hour = DateTime.now().hour;
+    String newGreeting;
+    if (hour < 12) {
+      newGreeting = AppStrings.goodMorning;
+    } else if (hour < 17) {
+      newGreeting = AppStrings.goodAfternoon;
+    } else {
+      newGreeting = AppStrings.goodEvening;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _greeting = newGreeting;
+    });
+  }
+
+  void _startTimer() {
+    Future.delayed(const Duration(minutes: 1), () {
+      if (mounted) {
+        _updateGreeting();
+        _startTimer();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _greeting,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+}
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return AppStrings.goodMorning;
-    if (hour < 17) return AppStrings.goodAfternoon;
-    return AppStrings.goodEvening;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,14 +115,7 @@ class HomeScreen extends ConsumerWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${_getGreeting()} 👋',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                                const DynamicGreetingWidget(),
                                 const SizedBox(height: 4),
                                 const Text(
                                   'RecycleScan',
@@ -84,7 +126,7 @@ class HomeScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 const Text(
-                                  'Let\'s make recycling easy 🌿',
+                                  'Let\'s make recycling easy',
                                   style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 13,
@@ -98,8 +140,7 @@ class HomeScreen extends ConsumerWidget {
                                 color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Text('♻️',
-                                  style: TextStyle(fontSize: 26)),
+                              child: const Icon(Icons.recycling, color: Colors.white, size: 26),
                             ),
                           ],
                         ),
@@ -199,6 +240,9 @@ class HomeScreen extends ConsumerWidget {
                     items: recentItems,
                     onItemTap: (item) => context.push('/result', extra: item),
                     onScanTap: () => context.push('/scanner'),
+                    onDelete: (id) {
+                      ref.read(scanHistoryProvider.notifier).removeItem(id);
+                    },
                   ).animate().fadeIn(delay: 350.ms),
 
                   const SizedBox(height: 20),

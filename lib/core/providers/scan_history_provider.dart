@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/services/hive_service.dart';
+import 'package:recyclescan/core/services/widget_service.dart';
 
 final scanHistoryProvider =
     StateNotifierProvider<ScanHistoryNotifier, List<ScanItem>>((ref) {
@@ -19,6 +20,7 @@ class ScanHistoryNotifier extends StateNotifier<List<ScanItem>> {
     if (Hive.isBoxOpen(HiveService.scanHistoryBox)) {
       HiveService.scanHistory.listenable().addListener(() {
         state = HiveService.getAllScanItems();
+        WidgetService.updateWidgetData(allItems: state);
       });
     }
   }
@@ -26,11 +28,13 @@ class ScanHistoryNotifier extends StateNotifier<List<ScanItem>> {
   Future<void> addItem(ScanItem item) async {
     await HiveService.addScanItem(item);
     state = HiveService.getAllScanItems();
+    WidgetService.updateWidgetData(allItems: state);
   }
 
   Future<void> removeItem(String id) async {
     await HiveService.deleteScanItem(id);
     state = HiveService.getAllScanItems();
+    WidgetService.updateWidgetData(allItems: state);
   }
 
   Future<void> clearAll() async {

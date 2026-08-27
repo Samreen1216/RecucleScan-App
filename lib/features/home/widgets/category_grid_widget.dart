@@ -39,10 +39,14 @@ class CategoryGridWidget extends StatelessWidget {
                         width: 1.5,
                       ),
                     ),
-                    child: Icon(
-                      category.icon,
-                      color: category.color,
-                      size: 28,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.asset(
+                        category.imageAsset,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

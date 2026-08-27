@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
+import 'package:recyclescan/core/models/recycling_category.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/providers/scan_history_provider.dart';
 import 'package:intl/intl.dart';
@@ -366,10 +368,18 @@ class _HistoryItemCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Text(
-                    item.imageEmoji ?? '📦',
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  child: item.localImagePath != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(item.localImagePath!),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildFallbackImage(category),
+                          ),
+                        )
+                      : _buildFallbackImage(category),
                 ),
               ),
               const SizedBox(width: 14),
@@ -391,9 +401,7 @@ class _HistoryItemCard extends StatelessWidget {
                     Row(
                       children: [
                         if (category != null) ...[
-                          Icon(category.icon,
-                              size: 13, color: category.color),
-                          const SizedBox(width: 4),
+
                           Text(
                             category.name,
                             style: TextStyle(
@@ -422,6 +430,20 @@ class _HistoryItemCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFallbackImage(RecyclingCategory? category) {
+    if (category != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(category.imageAsset, width: 50, height: 50, fit: BoxFit.cover),
+      );
+    }
+    return const Icon(
+      Icons.inventory_2_outlined,
+      size: 24,
+      color: AppColors.textSecondary,
     );
   }
 }

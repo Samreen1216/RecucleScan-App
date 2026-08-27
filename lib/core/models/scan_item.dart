@@ -28,6 +28,9 @@ class ScanItem extends HiveObject {
   @HiveField(7)
   final String? imageEmoji;
 
+  @HiveField(8)
+  final String? localImagePath;
+
   ScanItem({
     required this.id,
     required this.name,
@@ -37,6 +40,7 @@ class ScanItem extends HiveObject {
     this.brand,
     this.notes,
     this.imageEmoji,
+    this.localImagePath,
   });
 
   ScanItem copyWith({
@@ -48,6 +52,7 @@ class ScanItem extends HiveObject {
     String? brand,
     String? notes,
     String? imageEmoji,
+    String? localImagePath,
   }) {
     return ScanItem(
       id: id ?? this.id,
@@ -58,6 +63,7 @@ class ScanItem extends HiveObject {
       brand: brand ?? this.brand,
       notes: notes ?? this.notes,
       imageEmoji: imageEmoji ?? this.imageEmoji,
+      localImagePath: localImagePath ?? this.localImagePath,
     );
   }
 
@@ -71,6 +77,7 @@ class ScanItem extends HiveObject {
       'brand': brand,
       'notes': notes,
       'imageEmoji': imageEmoji,
+      'localImagePath': localImagePath,
     };
   }
 }

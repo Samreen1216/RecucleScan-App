@@ -35,10 +35,9 @@ class CategoryBadgeWidget extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
-              category.icon,
-              color: Colors.white,
-              size: 28,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(category.imageAsset, width: 28, height: 28, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(width: 16),

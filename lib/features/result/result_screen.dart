@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -92,50 +93,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [category.color, category.color.withValues(alpha: 0.8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      Text(
-                        widget.item.imageEmoji ?? '📦',
-                        style: const TextStyle(fontSize: 72),
-                      )
-                          .animate()
-                          .scale(
-                            duration: 500.ms,
-                            curve: Curves.elasticOut,
-                          ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.item.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (widget.item.brand != null)
-                        Text(
-                          widget.item.brand!,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+              background: widget.item.localImagePath != null
+                  ? Image.file(
+                      File(widget.item.localImagePath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildFallbackBackground(category),
+                    )
+                  : _buildFallbackBackground(category),
             ),
           ),
 
@@ -145,11 +109,35 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Title & Brand
+                  Text(
+                    widget.item.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ).animate().fadeIn(delay: 50.ms).slideY(begin: 0.2, delay: 50.ms),
+                  
+                  if (widget.item.brand != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.item.brand!,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, delay: 100.ms),
+                  ],
+                  
+                  const SizedBox(height: 20),
+
                   // Category badge
                   CategoryBadgeWidget(category: category)
                       .animate()
-                      .fadeIn(delay: 100.ms)
-                      .slideY(begin: 0.2, delay: 100.ms),
+                      .fadeIn(delay: 150.ms)
+                      .slideY(begin: 0.2, delay: 150.ms),
 
                   const SizedBox(height: 20),
 
@@ -278,6 +266,25 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackBackground(RecyclingCategory category) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [category.color, category.color.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.inventory_2_outlined,
+          size: 72,
+          color: Colors.white,
+        ),
       ),
     );
   }

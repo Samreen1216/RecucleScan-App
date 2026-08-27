@@ -1,19 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
+import 'package:recyclescan/core/models/recycling_category.dart';
 
 class RecentScansWidget extends StatelessWidget {
   final List<ScanItem> items;
   final void Function(ScanItem item) onItemTap;
   final VoidCallback onScanTap;
+  final void Function(String id)? onDelete;
 
   const RecentScansWidget({
     super.key,
     required this.items,
     required this.onItemTap,
     required this.onScanTap,
+    this.onDelete,
   });
 
   @override
@@ -29,7 +33,7 @@ class RecentScansWidget extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Text('🌱', style: TextStyle(fontSize: 40)),
+            const Icon(Icons.history, size: 40, color: AppColors.primaryGreen),
             const SizedBox(height: 12),
             const Text(
               AppStrings.noRecentScans,
@@ -66,66 +70,106 @@ class RecentScansWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         final category = RecyclingData.categoriesMap[item.categoryId];
-        return GestureDetector(
-          onTap: () => onItemTap(item),
-          child: Container(
-            padding: const EdgeInsets.all(12),
+        return Dismissible(
+          key: Key(item.id),
+          direction: DismissDirection.endToStart,
+          onDismissed: (_) {
+            if (onDelete != null) {
+              onDelete!(item.id);
+            }
+          },
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
             decoration: BoxDecoration(
-              color: category?.lightColor ?? AppColors.lightMint,
+              color: AppColors.error,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: (category?.color ?? AppColors.primaryGreen)
-                    .withValues(alpha: 0.3),
-              ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    item.imageEmoji ?? '📦',
-                    style: const TextStyle(fontSize: 24),
-                  ),
+            child: const Icon(Icons.delete_outline, color: Colors.white, size: 26),
+          ),
+          child: GestureDetector(
+            onTap: () => onItemTap(item),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: category?.lightColor ?? AppColors.lightMint,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (category?.color ?? AppColors.primaryGreen)
+                      .withValues(alpha: 0.3),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        category?.name ?? 'Unknown',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: category?.color ?? AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: item.localImagePath != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(item.localImagePath!),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildFallbackImage(category),
+                            ),
+                          )
+                        : _buildFallbackImage(category),
                   ),
-                ),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          category?.name ?? 'Unknown',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: category?.color ?? AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFallbackImage(RecyclingCategory? category) {
+    if (category != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(category.imageAsset, width: 50, height: 50, fit: BoxFit.cover),
+      );
+    }
+    return const Icon(
+      Icons.inventory_2_outlined,
+      size: 24,
+      color: AppColors.textSecondary,
     );
   }
 }

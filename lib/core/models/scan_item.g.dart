@@ -25,13 +25,14 @@ class ScanItemAdapter extends TypeAdapter<ScanItem> {
       brand: fields[5] as String?,
       notes: fields[6] as String?,
       imageEmoji: fields[7] as String?,
+      localImagePath: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ScanItem obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class ScanItemAdapter extends TypeAdapter<ScanItem> {
       ..writeByte(6)
       ..write(obj.notes)
       ..writeByte(7)
-      ..write(obj.imageEmoji);
+      ..write(obj.imageEmoji)
+      ..writeByte(8)
+      ..write(obj.localImagePath);
   }
 
   @override

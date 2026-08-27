@@ -51,66 +51,75 @@ class CategoryDetailScreen extends StatelessWidget {
                   ),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          category.color,
-                          category.color.withValues(alpha: 0.75)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        category.imageAsset,
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                    child: SafeArea(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          Text(
-                            category.recycleSymbol,
-                            style: const TextStyle(fontSize: 60),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black.withValues(alpha: 0.8),
+                              Colors.transparent,
+                            ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            category.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32),
-                            child: Text(
-                              category.description,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontSize: 13,
+                        ),
+                      ),
+                      SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              category.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                category.description,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 50), // Spacing for the tabs
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                bottom: const TabBar(
-                  indicatorColor: Colors.white,
-                  indicatorWeight: 3,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white54,
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    indicatorColor: AppColors.primaryGreen,
+                    indicatorWeight: 3,
+                    labelColor: AppColors.primaryGreen,
+                    unselectedLabelColor: AppColors.textSecondary,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                    tabs: const [
+                      Tab(text: 'What Goes In'),
+                      Tab(text: 'Keep Out'),
+                      Tab(text: 'Tips & Facts'),
+                    ],
                   ),
-                  tabs: [
-                    Tab(text: 'What Goes In'),
-                    Tab(text: 'Keep Out'),
-                    Tab(text: 'Tips & Facts'),
-                  ],
                 ),
               ),
             ];
@@ -217,7 +226,7 @@ class _TipsTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       children: [
         const Text(
-          '📋 Preparation Tips',
+          'Preparation Tips',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -297,8 +306,6 @@ class _TipsTab extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('🌟', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 8),
                   Text(
                     AppStrings.didYouKnow,
                     style: TextStyle(
@@ -323,5 +330,29 @@ class _TipsTab extends StatelessWidget {
         ).animate().fadeIn(delay: 400.ms),
       ],
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar _tabBar;
+
+  _SliverAppBarDelegate(this._tabBar);
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.background,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

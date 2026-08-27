@@ -276,7 +276,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(cat.icon, color: cat.color, size: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.asset(cat.imageAsset, width: 16, height: 16, fit: BoxFit.cover),
+                        ),
                         const SizedBox(width: 6),
                         Text(cat.name,
                             style: TextStyle(

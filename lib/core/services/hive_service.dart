@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 
@@ -16,7 +18,22 @@ class HiveService {
     if (!Hive.isBoxOpen(scanHistoryBox)) {
       await openBoxes();
     }
-    await scanHistory.put(item.id, item);
+    
+    ScanItem itemToSave = item;
+    if (item.localImagePath != null) {
+      final file = File(item.localImagePath!);
+      if (await file.exists()) {
+        final docs = await getApplicationDocumentsDirectory();
+        final ext = item.localImagePath!.split('.').last;
+        final newPath = '${docs.path}/${item.id}.$ext';
+        if (item.localImagePath != newPath) {
+          await file.copy(newPath);
+          itemToSave = item.copyWith(localImagePath: newPath);
+        }
+      }
+    }
+    
+    await scanHistory.put(itemToSave.id, itemToSave);
   }
 
   static Future<void> deleteScanItem(String id) async {

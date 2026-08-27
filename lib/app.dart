@@ -4,6 +4,8 @@ import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/router/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:home_widget/home_widget.dart';
+
 class RecycleScanApp extends ConsumerWidget {
   const RecycleScanApp({super.key});
 

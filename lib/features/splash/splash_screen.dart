@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer(const Duration(milliseconds: 2500), _navigate);
+    Future.microtask(_navigate);
   }
 
   Future<void> _navigate() async {
@@ -66,9 +66,10 @@ class _SplashScreenState extends State<SplashScreen> {
                 ],
               ),
               child: const Center(
-                child: Text(
-                  '♻️',
-                  style: TextStyle(fontSize: 60),
+                child: Icon(
+                  Icons.recycling,
+                  size: 60,
+                  color: AppColors.primaryGreen,
                 ),
               ),
             )
@@ -98,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 10),
 
             const Text(
-              'Scan. Learn. Recycle. 🌿',
+              'Scan. Learn. Recycle.',
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 16,

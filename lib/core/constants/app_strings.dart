@@ -22,7 +22,7 @@ class AppStrings {
   static const String goodMorning = 'Good Morning';
   static const String goodAfternoon = 'Good Afternoon';
   static const String goodEvening = 'Good Evening';
-  static const String homeSubtitle = 'Let\'s make recycling easy 🌿';
+  static const String homeSubtitle = 'Let\'s make recycling easy';
   static const String scanButton = 'Scan an Item';
   static const String categories = 'Recycling Categories';
   static const String recentScans = 'Recent Scans';
@@ -44,8 +44,8 @@ class AppStrings {
   static const String saveToHistory = 'Save to History';
   static const String savedToHistory = 'Saved!';
   static const String howToDispose = 'How to Dispose';
-  static const String doList = '✅ Do\'s';
-  static const String dontList = '❌ Don\'ts';
+  static const String doList = 'Do\'s';
+  static const String dontList = 'Don\'ts';
   static const String viewFullGuide = 'View Full Guide';
   static const String shareResult = 'Share';
 

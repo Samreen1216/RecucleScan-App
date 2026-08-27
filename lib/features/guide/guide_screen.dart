@@ -128,7 +128,10 @@ class _CategoryCard extends StatelessWidget {
                 border: Border.all(
                     color: category.color.withValues(alpha: 0.3)),
               ),
-              child: Icon(category.icon, color: category.color, size: 26),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(category.imageAsset, width: 26, height: 26, fit: BoxFit.cover),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(

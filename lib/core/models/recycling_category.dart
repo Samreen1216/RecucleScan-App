@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class RecyclingCategory {
   final String id;
   final String name;
-  final IconData icon;
+  final String imageAsset;
   final Color color;
   final Color lightColor;
   final String description;
@@ -16,7 +16,7 @@ class RecyclingCategory {
   const RecyclingCategory({
     required this.id,
     required this.name,
-    required this.icon,
+    required this.imageAsset,
     required this.color,
     required this.lightColor,
     required this.description,

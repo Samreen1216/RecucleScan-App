@@ -60,7 +60,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
     // Try Gemini if we have a key
     final apiKey = await _loadApiKey();
     if (apiKey.isNotEmpty) {
-      final success = await _tryGemini(bytes: bytes, apiKey: apiKey);
+      final success = await _tryGemini(bytes: bytes, apiKey: apiKey, imagePath: imagePath);
       if (success) return;
     }
 
@@ -78,7 +78,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   }
 
   /// Returns true if Gemini succeeded and state was updated.
-  Future<bool> _tryGemini({required Uint8List bytes, required String apiKey}) async {
+  Future<bool> _tryGemini({required Uint8List bytes, required String apiKey, required String imagePath}) async {
     try {
       final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
       final prompt = TextPart('''
@@ -119,6 +119,7 @@ Rules:
           categoryId: categoryId,
           timestamp: DateTime.now(),
           notes: data['preparationSummary']?.toString() ?? '',
+          localImagePath: imagePath,
         ),
       );
       return true;
@@ -133,8 +134,8 @@ Rules:
   // ─────────────────────────────────────────────────────────
   Future<void> _runMLKit(String imagePath) async {
     try {
-      // Use LOW confidence threshold so it actually returns results
-      final options = ImageLabelerOptions(confidenceThreshold: 0.3);
+      // Use higher confidence threshold so it returns more accurate results
+      final options = ImageLabelerOptions(confidenceThreshold: 0.65);
       final labeler = ImageLabeler(options: options);
       final inputImage = InputImage.fromFilePath(imagePath);
       final labels = await labeler.processImage(inputImage);
@@ -152,7 +153,17 @@ Rules:
 
       final category = _mlkitCategoryFromLabels(allText);
       final notes = _notesForCategory(category);
-      final bestLabel = _humanLabel(labels.first.label);
+      
+      const ignoreLabels = {'hand', 'finger', 'arm', 'wall', 'floor', 'room', 'ceiling', 'poster', 'person', 'table', 'desk', 'background', 'indoor', 'outdoor', 'wood', 'glass', 'plastic', 'metal', 'paper'};
+      String selectedLabel = labels.first.label;
+      for (final l in labels) {
+        if (!ignoreLabels.contains(l.label.toLowerCase())) {
+          selectedLabel = l.label;
+          break;
+        }
+      }
+      
+      final bestLabel = _humanLabel(selectedLabel);
 
       state = state.copyWith(
         isAnalyzing: false,
@@ -164,6 +175,7 @@ Rules:
           categoryId: category,
           timestamp: DateTime.now(),
           notes: notes,
+          localImagePath: imagePath,
         ),
       );
     } catch (e) {
@@ -281,7 +293,10 @@ Rules:
 
     final found = BarcodeLookupService.lookupBarcode(barcode);
     if (found != null) {
-      state = state.copyWith(isAnalyzing: false, result: found);
+      final itemWithImage = imagePath != null 
+          ? found.copyWith(localImagePath: imagePath)
+          : found;
+      state = state.copyWith(isAnalyzing: false, result: itemWithImage);
       return;
     }
 
@@ -299,6 +314,7 @@ Rules:
           categoryId: state.result!.categoryId,
           timestamp: state.result!.timestamp,
           notes: state.result!.notes,
+          localImagePath: state.result!.localImagePath,
         );
         state = state.copyWith(result: enhanced);
       }
