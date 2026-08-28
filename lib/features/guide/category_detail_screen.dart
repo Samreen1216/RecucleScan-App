@@ -105,16 +105,16 @@ class CategoryDetailScreen extends StatelessWidget {
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _SliverAppBarDelegate(
-                  TabBar(
+                  const TabBar(
                     indicatorColor: AppColors.primaryGreen,
                     indicatorWeight: 3,
                     labelColor: AppColors.primaryGreen,
                     unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(
+                    labelStyle: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
-                    tabs: const [
+                    tabs: [
                       Tab(text: 'What Goes In'),
                       Tab(text: 'Keep Out'),
                       Tab(text: 'Tips & Facts'),

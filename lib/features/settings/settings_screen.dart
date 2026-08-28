@@ -42,6 +42,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentKey = prefs.getString('gemini_api_key') ?? '';
     final controller = TextEditingController(text: currentKey);
 
+    if (!mounted) return;
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -66,7 +67,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               await prefs.setString('gemini_api_key', controller.text.trim());
-              if (mounted) Navigator.pop(ctx);
+              if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen),
             child: const Text('Save', style: TextStyle(color: Colors.white)),

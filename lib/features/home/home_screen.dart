@@ -112,12 +112,12 @@ class HomeScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
+                            const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const DynamicGreetingWidget(),
-                                const SizedBox(height: 4),
-                                const Text(
+                                DynamicGreetingWidget(),
+                                SizedBox(height: 4),
+                                Text(
                                   'RecycleScan',
                                   style: TextStyle(
                                     color: Colors.white,
@@ -125,7 +125,7 @@ class HomeScreen extends ConsumerWidget {
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
-                                const Text(
+                                Text(
                                   'Let\'s make recycling easy',
                                   style: TextStyle(
                                     color: Colors.white70,

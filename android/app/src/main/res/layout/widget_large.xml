@@ -1,170 +1,410 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@drawable/widget_bg"
-    android:padding="16dp">
+    android:padding="20dp">
 
-    <!-- Header -->
-    <LinearLayout
+    <ViewFlipper
+        android:id="@+id/view_flipper"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
-        
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RecycleScan"
-            android:textStyle="bold"
-            android:textColor="#4CAF50"
-            android:textSize="16sp" />
+        android:layout_height="match_parent"
+        android:flipInterval="10000"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=" • Small actions. Big impact."
-            android:textColor="#555555"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
-        
-        <!-- Impact Stats -->
+        <!-- View 1: Dashboard -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_vertical">
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="RecycleScan"
+                    android:textStyle="bold"
+                    android:textColor="#1B5E20"
+                    android:textSize="18sp" />
+                <TextView
+                    android:id="@+id/btn_scan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SCAN"
+                    android:background="@drawable/widget_button_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:id="@+id/tv_total_items"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="#1B5E20"
+                        android:textSize="40sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Items Sorted"
+                        android:textStyle="bold"
+                        android:textColor="#388E3C"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/tv_items_recycled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 Recycled"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ECO TIP"
+                        android:textStyle="bold"
+                        android:textColor="#2E7D32"
+                        android:textSize="10sp" />
+                    <TextView
+                        android:id="@+id/tv_eco_tip"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Loading tip..."
+                        android:textColor="#1C1C1E"
+                        android:textSize="12sp"
+                        android:maxLines="3"
+                        android:ellipsize="end" />
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tv_total_items"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="--"
+                android:text="RECENT SCAN"
                 android:textStyle="bold"
-                android:textColor="#1B5E20"
-                android:textSize="42sp" />
+                android:textColor="#2E7D32"
+                android:textSize="10sp"
+                android:layout_marginTop="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+                <TextView
+                    android:id="@+id/tv_recent_0_name"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textColor="#1B5E20"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+                <TextView
+                    android:id="@+id/tv_recent_0_cat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textColor="#1C1C1E"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- View 2: Recycling Progress -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Items recycled"
-                android:textColor="#388E3C"
-                android:textSize="14sp" />
+                android:text="YOUR RECYCLING IMPACT"
+                android:textStyle="bold"
+                android:textColor="#2E7D32"
+                android:textSize="12sp"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_total_items_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="#1B5E20"
+                        android:textSize="36sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Items Sorted"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tv_recyclable_percentage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0%"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="#388E3C"
+                        android:textSize="36sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Recyclable"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tv_items_this_week"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:text="+0 this week"
-                android:textColor="#555555"
+                android:textColor="#1C1C1E"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:textSize="14sp" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keep up the great work! You're making a real difference."
+                android:textColor="#6B6B6B"
+                android:textAlignment="center"
+                android:layout_marginTop="8dp"
                 android:textSize="12sp" />
-
         </LinearLayout>
 
-        <!-- Eco Insight Card -->
+        <!-- View 3: Daily Quiz -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/widget_card_bg"
-            android:padding="12dp"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_content_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ECO TIP"
+                android:text="DAILY RECYCLING QUIZ"
                 android:textStyle="bold"
-                android:textColor="#4CAF50"
-                android:textSize="12sp" />
+                android:textColor="#2E7D32"
+                android:textSize="12sp"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="16dp" />
 
             <TextView
-                android:id="@+id/tv_content_text"
+                android:id="@+id/tv_quiz_question"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Loading..."
-                android:textColor="#333333"
-                android:textSize="12sp"
-                android:maxLines="3"
-                android:ellipsize="end" />
+                android:text="Loading quiz..."
+                android:textColor="#1C1C1E"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tv_quiz_option_a"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Option A"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp"
+                    android:textColor="#1C1C1E"
+                    android:layout_marginBottom="8dp" />
+                <TextView
+                    android:id="@+id/tv_quiz_option_b"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Option B"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp"
+                    android:textColor="#1C1C1E" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_quiz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TAP TO ANSWER"
+                android:background="@drawable/widget_button_bg"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_marginTop="16dp" />
         </LinearLayout>
-    </LinearLayout>
 
-    <!-- Recent Activity -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="RECENTLY SORTED"
-        android:textStyle="bold"
-        android:textColor="#4CAF50"
-        android:textSize="10sp"
-        android:layout_marginTop="12dp" />
+        <!-- View 4: Recent Activity -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_recent_item_0"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="-"
-        android:textColor="#333333"
-        android:textSize="12sp"
-        android:layout_marginTop="4dp"
-        android:maxLines="1"
-        android:ellipsize="end"/>
-        
-    <TextView
-        android:id="@+id/tv_recent_item_1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="-"
-        android:textColor="#333333"
-        android:textSize="12sp"
-        android:layout_marginTop="4dp"
-        android:maxLines="1"
-        android:ellipsize="end"/>
-        
-    <TextView
-        android:id="@+id/tv_recent_item_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="-"
-        android:textColor="#333333"
-        android:textSize="12sp"
-        android:layout_marginTop="4dp"
-        android:maxLines="1"
-        android:ellipsize="end"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="RECENT SCANS"
+                android:textStyle="bold"
+                android:textColor="#2E7D32"
+                android:textSize="12sp"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="12dp" />
 
-    <!-- Bottom Action -->
-    <LinearLayout
-        android:id="@+id/btn_scan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/widget_button_bg"
-        android:gravity="center"
-        android:padding="12dp"
-        android:layout_marginTop="16dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                
+                <!-- Item 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:id="@+id/tv_recent_0_name_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textStyle="bold"
+                        android:textColor="#1B5E20"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/tv_recent_0_cat_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SCAN ITEM"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-    </LinearLayout>
+                <!-- Item 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:id="@+id/tv_recent_1_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textStyle="bold"
+                        android:textColor="#1B5E20"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/tv_recent_1_cat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
-</LinearLayout>
+                <!-- Item 3 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/widget_card_bg"
+                    android:padding="12dp">
+                    <TextView
+                        android:id="@+id/tv_recent_2_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textStyle="bold"
+                        android:textColor="#1B5E20"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/tv_recent_2_cat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:textColor="#6B6B6B"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_history_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="VIEW HISTORY"
+                android:background="@drawable/widget_button_bg"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+    </ViewFlipper>
+</FrameLayout>

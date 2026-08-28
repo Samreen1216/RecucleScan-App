@@ -27,12 +27,24 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep linking for Widget SCAN ITEM action -->
+            <!-- Deep linking for Widget actions -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="recyclescan" android:host="app" android:path="/scanner" />
+                <data android:scheme="recyclescan" android:host="app" android:path="/history" />
+                <data android:scheme="recyclescan" android:host="app" android:path="/guide" />
+                <data android:scheme="recyclescan" android:host="app" android:path="/quiz" />
+                <data android:scheme="recyclescan" android:host="app" android:pathPrefix="/guide/" />
+            </intent-filter>
+        </activity>
+        
+        <activity android:name=".WidgetConfigureActivity"
+                  android:exported="true"
+                  android:theme="@android:style/Theme.DeviceDefault.Light.Dialog">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
         

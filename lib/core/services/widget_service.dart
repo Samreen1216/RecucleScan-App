@@ -13,12 +13,6 @@ class WidgetService {
     "Compost your food scraps if possible."
   ];
 
-  static final List<String> _didYouKnow = [
-    "Glass can be recycled repeatedly.",
-    "Aluminum can be recycled again and again.",
-    "Recycling one aluminum can saves enough energy to run a TV for 3 hours."
-  ];
-
   static Future<void> initialize() async {
     // Required for HomeWidget initialization if we need group ID for iOS, but okay for Android.
     await HomeWidget.setAppGroupId('group.com.example.recyclescan');
@@ -31,6 +25,8 @@ class WidgetService {
     
     // Calculate total
     final totalItems = allItems.length;
+    final recycledItems = allItems.where((i) => i.categoryId.toLowerCase() != 'general').length;
+    final int recyclablePercentage = totalItems > 0 ? ((recycledItems / totalItems) * 100).round() : 0;
 
     // Calculate this week
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
@@ -42,45 +38,41 @@ class WidgetService {
     final random = Random();
     
     // Pick dynamic content
-    String contentTitle = "";
-    String contentText = "";
+    String ecoTip = _ecoTips[random.nextInt(_ecoTips.length)];
     
-    final int stateChoice = random.nextInt(4);
-    switch (stateChoice) {
-      case 0:
-        contentTitle = "ECO TIP";
-        contentText = _ecoTips[random.nextInt(_ecoTips.length)];
-        break;
-      case 1:
-        contentTitle = "DID YOU KNOW?";
-        contentText = _didYouKnow[random.nextInt(_didYouKnow.length)];
-        break;
-      case 2:
-        contentTitle = "NICE WORK!";
-        contentText = "You've sorted $totalItems items.";
-        break;
-      case 3:
-      default:
-        contentTitle = "IMPACT";
-        contentText = "You're making a difference!";
-        break;
-    }
+    // Quiz dummy data for widget
+    String quizQuestion = "What is the most recycled material in the world?";
+    String quizOptionA = "A) Plastic";
+    String quizOptionB = "B) Aluminum";
+    String quizOptionC = "C) Paper";
+    String quizOptionD = "D) Steel";
 
     // Save primitive data for Native Android XML Layout
     await HomeWidget.saveWidgetData<int>('total_items', totalItems);
+    await HomeWidget.saveWidgetData<int>('items_recycled', recycledItems);
     await HomeWidget.saveWidgetData<int>('items_this_week', itemsThisWeek);
+    await HomeWidget.saveWidgetData<int>('recyclable_percentage', recyclablePercentage);
     
-    await HomeWidget.saveWidgetData<String>('content_title', contentTitle);
-    await HomeWidget.saveWidgetData<String>('content_text', contentText);
+    await HomeWidget.saveWidgetData<String>('eco_tip', ecoTip);
+    
+    await HomeWidget.saveWidgetData<String>('quiz_question', quizQuestion);
+    await HomeWidget.saveWidgetData<String>('quiz_option_a', quizOptionA);
+    await HomeWidget.saveWidgetData<String>('quiz_option_b', quizOptionB);
+    await HomeWidget.saveWidgetData<String>('quiz_option_c', quizOptionC);
+    await HomeWidget.saveWidgetData<String>('quiz_option_d', quizOptionD);
 
-    // Save recent items as distinct strings
+    // Save recent items
     for (int i = 0; i < 3; i++) {
       if (i < recentItems.length) {
         final item = recentItems[i];
-        final formattedName = "${item.name} — ${item.categoryId.toUpperCase()}";
-        await HomeWidget.saveWidgetData<String>('recent_item_$i', formattedName);
+        bool isRecyclable = item.categoryId.toLowerCase() != 'general';
+        await HomeWidget.saveWidgetData<String>('recent_${i}_name', item.name);
+        await HomeWidget.saveWidgetData<String>('recent_${i}_category', item.categoryId.toUpperCase());
+        await HomeWidget.saveWidgetData<String>('recent_${i}_status', isRecyclable ? "✓ Recyclable" : "✗ Not Recyclable");
       } else {
-        await HomeWidget.saveWidgetData<String>('recent_item_$i', "");
+        await HomeWidget.saveWidgetData<String>('recent_${i}_name', "-");
+        await HomeWidget.saveWidgetData<String>('recent_${i}_category', "-");
+        await HomeWidget.saveWidgetData<String>('recent_${i}_status', "-");
       }
     }
 

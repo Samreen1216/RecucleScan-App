@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/models/recycling_category.dart';
 

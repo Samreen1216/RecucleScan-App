@@ -8,5 +8,7 @@
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_compact"
-    android:resizeMode="horizontal|vertical"
+    android:previewLayout="@layout/widget_compact"
+    android:resizeMode="none"
+    android:configure="com.recyclescan.recyclescan.WidgetConfigureActivity"
     android:widgetCategory="home_screen" />

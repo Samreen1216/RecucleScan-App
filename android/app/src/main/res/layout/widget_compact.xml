@@ -1,71 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@drawable/widget_bg"
     android:padding="16dp">
 
-    <TextView
+    <ViewFlipper
+        android:id="@+id/view_flipper"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="RecycleScan"
-        android:textStyle="bold"
-        android:textColor="#4CAF50"
-        android:textSize="14sp" />
+        android:layout_height="match_parent"
+        android:flipInterval="10000"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center_vertical">
+        <!-- View 1: App Introduction -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RecycleScan"
+                android:textStyle="bold"
+                android:textColor="#1B5E20"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan waste.\nSort better."
+                android:textColor="#388E3C"
+                android:textAlignment="center"
+                android:textSize="13sp" />
+        </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_total_items"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="--"
-            android:textStyle="bold"
-            android:textColor="#1B5E20"
-            android:textSize="36sp" />
+        <!-- View 2: Quick Scan -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Items recycled"
-            android:textColor="#388E3C"
-            android:textSize="12sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Identify waste instantly"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp"
+                android:layout_marginBottom="12dp" />
 
-        <TextView
-            android:id="@+id/tv_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Small actions. Big impact."
-            android:textColor="#555555"
-            android:textSize="12sp"
-            android:maxLines="2"
-            android:ellipsize="end" />
+            <LinearLayout
+                android:id="@+id/btn_scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_button_bg"
+                android:gravity="center"
+                android:paddingVertical="12dp">
 
-    </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SCAN ITEM"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/btn_scan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/widget_button_bg"
-        android:gravity="center"
-        android:padding="10dp"
-        android:layout_marginTop="8dp">
+        <!-- View 3: Recycling Stats -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SCAN ITEM"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YOUR IMPACT"
+                android:textStyle="bold"
+                android:textColor="#2E7D32"
+                android:textSize="11sp"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="8dp" />
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/tv_total_items"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#1B5E20"
+                android:textSize="32sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Items Sorted"
+                android:textStyle="bold"
+                android:textColor="#388E3C"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_items_recycled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 Recycled"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+    </ViewFlipper>
+</FrameLayout>
