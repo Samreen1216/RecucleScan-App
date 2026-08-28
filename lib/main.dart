@@ -11,7 +11,7 @@ void main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(ScanItemAdapter());
-  await HiveService.openBoxes();
+  
 
   runApp(
     ProviderScope(
@@ -21,5 +21,6 @@ void main() async {
       ],
       child: const RecycleScanApp(),
     ),
-  );gi
+  );
 }
+

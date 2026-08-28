@@ -1,4 +1,4 @@
-﻿package com.recyclescan.recyclescan
+package com.recyclescan.recyclescan
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -72,13 +72,10 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
         try { views.setTextViewText(R.id.tv_eco_tip2, ecoTip) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_0_name, recent0Name) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_0_cat, recent0Cat) } catch (e: Exception) {}
-        try { views.setTextViewText(R.id.tv_recent_0_status, recent0Status) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_1_name, recent1Name) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_1_cat, recent1Cat) } catch (e: Exception) {}
-        try { views.setTextViewText(R.id.tv_recent_2_name, recent2Name) } catch (e: Exception) {}
-        try { views.setTextViewText(R.id.tv_recent_2_cat, recent2Cat) } catch (e: Exception) {}
 
-        // Set the currently displayed view in ViewFlipper manually!
+        // Set the displayed view manually
         try { views.setDisplayedChild(R.id.view_flipper, currentIndex) } catch (e: Exception) {}
 
         // Set Click Intents
@@ -98,34 +95,32 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
         try { views.setOnClickPendingIntent(R.id.btn_history2, getPendingIntent("/history")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_history3, getPendingIntent("/history")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_guides, getPendingIntent("/guide")) } catch (e: Exception) {}
-        try { views.setOnClickPendingIntent(R.id.btn_categories, getPendingIntent("/guide")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.view_recent_scan_0, getPendingIntent("/history")) } catch (e: Exception) {}
 
-        // Prev button manual control
-        val prevIntent = Intent(context, this::class.java).apply {
-            action = "ACTION_PREV_VIEW"
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        }
-        val prevPendingIntent = PendingIntent.getBroadcast(
-            context,
-            appWidgetId * 2 + 1,
-            prevIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        try { views.setOnClickPendingIntent(R.id.btn_prev_view, prevPendingIntent) } catch (e: Exception) {}
-
-        // Next button manual control
-        val nextIntent = Intent(context, this::class.java).apply {
+        // Next/Prev button manual control
+        val nextIntent = Intent(context, javaClass).apply {
             action = "ACTION_NEXT_VIEW"
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }
         val nextPendingIntent = PendingIntent.getBroadcast(
             context,
-            appWidgetId * 2,
+            appWidgetId,
             nextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         try { views.setOnClickPendingIntent(R.id.btn_next_view, nextPendingIntent) } catch (e: Exception) {}
+
+        val prevIntent = Intent(context, javaClass).apply {
+            action = "ACTION_PREV_VIEW"
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        }
+        val prevPendingIntent = PendingIntent.getBroadcast(
+            context,
+            appWidgetId + 1000,
+            prevIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        try { views.setOnClickPendingIntent(R.id.btn_prev_view, prevPendingIntent) } catch (e: Exception) {}
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

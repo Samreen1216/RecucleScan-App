@@ -46,6 +46,8 @@
         <receiver android:name=".RecycleScanWidgetProviderCompact" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ACTION_NEXT_VIEW" />
+                <action android:name="ACTION_PREV_VIEW" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -55,6 +57,8 @@
         <receiver android:name=".RecycleScanWidgetProviderWide" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ACTION_NEXT_VIEW" />
+                <action android:name="ACTION_PREV_VIEW" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -64,6 +68,8 @@
         <receiver android:name=".RecycleScanWidgetProviderLarge" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="ACTION_NEXT_VIEW" />
+                <action android:name="ACTION_PREV_VIEW" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

@@ -1,4 +1,5 @@
-﻿import 'dart:async';
+import 'package:recyclescan/core/services/hive_service.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +17,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initApp();
+    });
   }
 
   Future<void> _initApp() async {
@@ -25,6 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // 2. Check onboarding status
     final prefs = await SharedPreferences.getInstance();
+    await HiveService.openBoxes();
     final hasOnboarded = prefs.getBool('has_onboarded') ?? false;
 
     // 3. Wait for the animation timer
@@ -124,3 +128,5 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+
+
