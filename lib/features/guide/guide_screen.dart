@@ -141,7 +141,7 @@ class _CategoryCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${category.recycleSymbol} ${category.name}',
+                        category.name,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,

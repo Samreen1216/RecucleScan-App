@@ -9,6 +9,7 @@ import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/models/recycling_category.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/providers/bag_provider.dart';
+import 'package:recyclescan/core/providers/scan_history_provider.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
   final ScanItem item;
@@ -20,6 +21,14 @@ class ResultScreen extends ConsumerStatefulWidget {
 }
 
 class _ResultScreenState extends ConsumerState<ResultScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(scanHistoryProvider.notifier).addItem(widget.item);
+    });
+  }
 
   RecyclingCategory? get _category =>
       RecyclingData.categoriesMap[widget.item.categoryId];
