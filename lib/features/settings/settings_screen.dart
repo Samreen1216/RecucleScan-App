@@ -215,15 +215,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const _SectionLabel(label: 'Data'),
                   const SizedBox(height: 10),
 
-                  _SettingsTile(
-                    icon: Icons.key_outlined,
-                    iconColor: AppColors.amber,
-                    title: 'Gemini API Key',
-                    subtitle: 'Required for AI Vision scanning',
-                    onTap: _showApiKeyDialog,
-                  ).animate().fadeIn(delay: 175.ms),
-
-                  const SizedBox(height: 10),
+              
 
                   _SettingsTile(
                     icon: Icons.delete_outline,

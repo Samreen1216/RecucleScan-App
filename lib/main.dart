@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:recyclescan/app.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/router/app_router.dart';
-import 'package:recyclescan/core/services/hive_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

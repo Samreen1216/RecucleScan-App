@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,22 +21,22 @@ class ScannerScreen extends ConsumerStatefulWidget {
 
 class _ScannerScreenState extends ConsumerState<ScannerScreen>
     with TickerProviderStateMixin {
-  // ── Camera ──
+  // â”€â”€ Camera â”€â”€
   CameraController? _cameraController;
   List<CameraDescription> _cameras = [];
   int _selectedCameraIdx = 0;
   bool _isCameraInitialized = false;
 
-  // ── Animation ──
+  // â”€â”€ Animation â”€â”€
   late AnimationController _scanLineCtrl;
   late Animation<double> _scanLineAnim;
 
-  // ── MLKit Barcode ──
+  // â”€â”€ MLKit Barcode â”€â”€
   late final BarcodeScanner _barcodeScanner;
   bool _isProcessingFrame = false;
   String? _lastDetectedBarcode;
 
-  // ── Gallery ──
+  // â”€â”€ Gallery â”€â”€
   final ImagePicker _imagePicker = ImagePicker();
 
   @override
@@ -55,7 +55,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     );
   }
 
-  // ── Camera init ──
+  // â”€â”€ Camera init â”€â”€
   Future<void> _initCamera() async {
     try {
       _cameras = await availableCameras();
@@ -104,7 +104,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     setState(() {});
   }
 
-  // ── Live barcode scanning (called on every camera frame in barcode mode) ──
+  // â”€â”€ Live barcode scanning (called on every camera frame in barcode mode) â”€â”€
   Future<void> _processCameraFrame(CameraImage image) async {
     if (_isProcessingFrame) return;
     if (ref.read(scannerProvider).isAnalyzing) return;
@@ -120,7 +120,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
         bytes: allBytes.done().buffer.asUint8List(),
         metadata: InputImageMetadata(
           size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: InputImageRotation.rotation0deg,
+          rotation: InputImageRotationValue.fromRawValue(_cameras[_selectedCameraIdx].sensorOrientation) ?? InputImageRotation.rotation0deg,
           format: Platform.isAndroid
               ? InputImageFormat.nv21
               : InputImageFormat.bgra8888,
@@ -155,7 +155,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     }
   }
 
-  // ── Shutter pressed (AI Vision mode) ──
+  // â”€â”€ Shutter pressed (AI Vision mode) â”€â”€
   Future<void> _captureImage() async {
     if (_cameraController == null || !_isCameraInitialized) return;
     if (_cameraController!.value.isTakingPicture) return;
@@ -171,7 +171,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     }
   }
 
-  // ── Gallery pick (AI Vision mode) ──
+  // â”€â”€ Gallery pick (AI Vision mode) â”€â”€
   Future<void> _pickGalleryImage() async {
     if (ref.read(scannerProvider).isAnalyzing) return;
     try {
@@ -195,7 +195,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     super.dispose();
   }
 
-  // ── Navigation / error handling ──
+  // â”€â”€ Navigation / error handling â”€â”€
   void _handleStateChange(ScannerState? prev, ScannerState next) {
     if (!mounted) return;
 
@@ -239,7 +239,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           children: [
             Container(width: 40, height: 4, color: Colors.grey[300]),
             const SizedBox(height: 20),
-            const Text('🔍', style: TextStyle(fontSize: 40)),
+            const Text('ðŸ”', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 10),
             const Text(
               'Product Not in Database',
@@ -324,7 +324,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── 1. Camera Preview (with live barcode stream in barcode mode) ──
+          // â”€â”€ 1. Camera Preview (with live barcode stream in barcode mode) â”€â”€
           SizedBox.expand(
             child: _isCameraInitialized && _cameraController != null
                 ? isBarcodeMode
@@ -347,14 +347,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         children: [
                           Icon(Icons.camera_alt_outlined, color: Colors.white38, size: 64),
                           SizedBox(height: 12),
-                          Text('Starting camera…', style: TextStyle(color: Colors.white38)),
+                          Text('Starting cameraâ€¦', style: TextStyle(color: Colors.white38)),
                         ],
                       ),
                     ),
                   ),
           ),
 
-          // ── 2. Dark overlay with scan hole ──
+          // â”€â”€ 2. Dark overlay with scan hole â”€â”€
           Positioned.fill(
             child: CustomPaint(
               painter: _ScanOverlayPainter(
@@ -362,7 +362,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
           ),
 
-          // ── 3. Animated laser line ──
+          // â”€â”€ 3. Animated laser line â”€â”€
           AnimatedBuilder(
             animation: _scanLineAnim,
             builder: (context, _) => Positioned(
@@ -392,10 +392,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
           ),
 
-          // ── 4. Corner brackets ──
+          // â”€â”€ 4. Corner brackets â”€â”€
           ..._buildCorners(boxLeft, boxTop, boxSize),
 
-          // ── 5. Helper label ──
+          // â”€â”€ 5. Helper label â”€â”€
           Positioned(
             top: boxTop - 48,
             left: 0,
@@ -409,8 +409,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                 ),
                 child: Text(
                   isBarcodeMode
-                      ? 'Point at a barcode — auto-detects!'
-                      : 'Align item in frame, then tap 📷',
+                      ? 'Point at a barcode â€” auto-detects!'
+                      : 'Align item in frame, then tap ðŸ“·',
                   style: const TextStyle(
                       color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
                 ),
@@ -418,7 +418,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
           ),
 
-          // ── 6. Top header bar ──
+          // â”€â”€ 6. Top header bar â”€â”€
           Positioned(
             top: 0, left: 0, right: 0,
             child: SafeArea(
@@ -439,14 +439,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _ModePill(
-                            title: '🤖 AI Vision',
+                            title: 'ðŸ¤– AI Vision',
                             isActive: !isBarcodeMode,
                             onTap: () => ref
                                 .read(scannerProvider.notifier)
                                 .setMode(ScannerMode.aiVision),
                           ),
                           _ModePill(
-                            title: '📷 Barcode',
+                            title: 'ðŸ“· Barcode',
                             isActive: isBarcodeMode,
                             onTap: () {
                               ref
@@ -469,7 +469,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
           ),
 
-          // ── 7. Bottom controls ──
+          // â”€â”€ 7. Bottom controls â”€â”€
           Positioned(
             bottom: 0, left: 0, right: 0,
             child: Container(
@@ -492,14 +492,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         children: [
-                          _SampleChip(label: '🥤 PET Bottle', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('PET Bottle')),
-                          _SampleChip(label: '🍕 Pizza Box', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Pizza Box')),
-                          _SampleChip(label: '🥫 Alum Can', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Aluminum Can')),
-                          _SampleChip(label: '🔋 Battery', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Lithium Battery')),
-                          _SampleChip(label: '🫙 Glass Jar', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Glass Jar')),
-                          _SampleChip(label: '🍌 Banana', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Banana Peel')),
-                          _SampleChip(label: '📦 Cardboard', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Cardboard Box')),
-                          _SampleChip(label: '☕ Coffee Cup', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Coffee Cup')),
+                          _SampleChip(label: 'ðŸ¥¤ PET Bottle', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('PET Bottle')),
+                          _SampleChip(label: 'ðŸ• Pizza Box', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Pizza Box')),
+                          _SampleChip(label: 'ðŸ¥« Alum Can', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Aluminum Can')),
+                          _SampleChip(label: 'ðŸ”‹ Battery', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Lithium Battery')),
+                          _SampleChip(label: 'ðŸ«™ Glass Jar', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Glass Jar')),
+                          _SampleChip(label: 'ðŸŒ Banana', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Banana Peel')),
+                          _SampleChip(label: 'ðŸ“¦ Cardboard', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Cardboard Box')),
+                          _SampleChip(label: 'â˜• Coffee Cup', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Coffee Cup')),
                         ],
                       ),
                     ),
@@ -507,7 +507,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        'Auto-scanning… Point camera at any product barcode.',
+                        'Auto-scanningâ€¦ Point camera at any product barcode.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
@@ -589,7 +589,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
           ),
 
-          // ── 8. Analyzing overlay ──
+          // â”€â”€ 8. Analyzing overlay â”€â”€
           if (state.isAnalyzing)
             Positioned.fill(
               child: Container(
@@ -612,8 +612,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         const SizedBox(height: 20),
                         Text(
                           isBarcodeMode
-                              ? '🔍 Looking up product…'
-                              : '🤖 Identifying object…',
+                              ? 'ðŸ” Looking up productâ€¦'
+                              : 'ðŸ¤– Identifying objectâ€¦',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 16,
@@ -679,7 +679,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 }
 
-// ── Live barcode preview widget (streams frames to MLKit) ──
+// â”€â”€ Live barcode preview widget (streams frames to MLKit) â”€â”€
 class _LiveBarcodePreview extends StatefulWidget {
   final CameraController controller;
   final Future<void> Function(CameraImage) onFrameAvailable;
@@ -720,7 +720,7 @@ class _LiveBarcodePreviewState extends State<_LiveBarcodePreview> {
   Widget build(BuildContext context) => CameraPreview(widget.controller);
 }
 
-// ─────────────── Painters / Helpers ───────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Painters / Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ScanOverlayPainter extends CustomPainter {
   final double boxLeft, boxTop, boxSize;
@@ -860,3 +860,4 @@ class _SampleChip extends StatelessWidget {
         ),
       );
 }
+
