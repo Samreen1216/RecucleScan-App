@@ -135,7 +135,7 @@ Rules:
   Future<void> _runMLKit(String imagePath) async {
     try {
       // Use higher confidence threshold so it returns more accurate results
-      final options = ImageLabelerOptions(confidenceThreshold: 0.65);
+      final options = ImageLabelerOptions(confidenceThreshold: 0.45);
       final labeler = ImageLabeler(options: options);
       final inputImage = InputImage.fromFilePath(imagePath);
       final labels = await labeler.processImage(inputImage);
@@ -204,36 +204,39 @@ Rules:
     // E-Waste
     if (_anyOf(allLabels, ['computer', 'laptop', 'phone', 'smartphone', 'tablet',
         'keyboard', 'television', 'monitor', 'electronic', 'circuit', 'battery',
-        'charger', 'cable', 'camera', 'headphone', 'printer', 'mouse pad'])) {
+        'charger', 'cable', 'camera', 'headphone', 'printer', 'mouse', 'appliance'])) {
       return 'ewaste';
     }
     // Organic
     if (_anyOf(allLabels, ['fruit', 'vegetable', 'food', 'plant', 'leaf', 'grass',
         'apple', 'banana', 'orange', 'meat', 'fish', 'flower', 'tree', 'produce',
-        'salad', 'bread', 'mushroom', 'berry', 'pear', 'mango', 'potato', 'pepper'])) {
+        'salad', 'bread', 'mushroom', 'berry', 'pear', 'mango', 'potato', 'pepper', 'snack', 'candy', 'cookie', 'chocolate'])) {
       return 'organic';
     }
     // Glass
-    if (_anyOf(allLabels, ['glass', 'bottle', 'jar', 'wine', 'beer', 'drinking'])) {
-      // Make sure it's actually glass, not plastic bottle
-      if (!allLabels.contains('plastic') && !allLabels.contains('water bottle')) {
+    if (_anyOf(allLabels, ['glass', 'jar', 'wine', 'beer', 'perfume'])) {
+      if (!allLabels.contains('plastic') && !allLabels.contains('water bottle') && !allLabels.contains('screen')) {
         return 'glass';
       }
     }
     // Plastic
     if (_anyOf(allLabels, ['plastic', 'water bottle', 'jug', 'container', 'bag',
-        'packaging', 'wrapper', 'polystyrene', 'foam'])) {
+        'packaging', 'wrapper', 'polystyrene', 'foam', 'bottle', 'cup', 'lid'])) {
       return 'plastic';
     }
     // Paper
     if (_anyOf(allLabels, ['paper', 'cardboard', 'box', 'book', 'newspaper',
-        'document', 'magazine', 'envelope', 'notebook'])) {
+        'document', 'magazine', 'envelope', 'notebook', 'carton', 'receipt', 'ticket'])) {
       return 'paper';
     }
     // Metal
     if (_anyOf(allLabels, ['metal', 'can', 'tin', 'aluminium', 'aluminum', 'steel',
-        'spoon', 'fork', 'knife', 'cutlery', 'utensil', 'iron', 'copper', 'silver'])) {
+        'spoon', 'fork', 'knife', 'cutlery', 'utensil', 'iron', 'copper', 'silver', 'foil', 'brass'])) {
       return 'metal';
+    }
+    // Clothing / Textiles (General)
+    if (_anyOf(allLabels, ['clothing', 'shirt', 'pants', 'shoe', 'fabric', 'textile', 'bag', 'backpack'])) {
+      return 'general';
     }
     return 'general';
   }

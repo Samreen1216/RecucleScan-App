@@ -15,7 +15,7 @@ class CategoryGridWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100, // Enough height for icon (60) + spacing (6) + 2 lines of text
+      height: 125, // Enough height for icon (76) + spacing (8) + 2 lines of text
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -25,28 +25,28 @@ class CategoryGridWidget extends StatelessWidget {
           return GestureDetector(
             onTap: () => onCategoryTap(category.id),
             child: SizedBox(
-              width: 70, // Fixed width for each category item to prevent text stretching too far
+              width: 85, // Fixed width for each category item
               child: Column(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 76,
+                    height: 76,
                     decoration: BoxDecoration(
                       color: category.lightColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: category.color.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18.5),
                       child: Image.asset(
                         category.imageAsset,
-                        width: 60,
-                        height: 60,
-                        cacheWidth: 120,
-                        cacheHeight: 120,
+                        width: 76,
+                        height: 76,
+                        cacheWidth: 152,
+                        cacheHeight: 152,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -55,10 +55,10 @@ class CategoryGridWidget extends StatelessWidget {
                   Text(
                     category.name,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
-                      height: 1.1,
+                      height: 1.2,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,

@@ -116,11 +116,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
         allBytes.putUint8List(plane.bytes);
       }
 
+      final camera = _cameras[_selectedCameraIdx];
       final inputImage = InputImage.fromBytes(
         bytes: allBytes.done().buffer.asUint8List(),
         metadata: InputImageMetadata(
           size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: InputImageRotation.rotation0deg,
+          rotation: InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg,
           format: Platform.isAndroid
               ? InputImageFormat.nv21
               : InputImageFormat.bgra8888,
