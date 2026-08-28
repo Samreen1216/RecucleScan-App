@@ -50,9 +50,9 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
     state = const ScannerState(mode: ScannerMode.aiVision, isAnalyzing: false);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // 1.  AI Vision (camera image) â€” Gemini first, MLKit fallback
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
+  // 1.  AI Vision (camera image) — Gemini first, MLKit fallback
+  // ─────────────────────────────────────────────────────────
   Future<void> analyzeImage({required Uint8List bytes, required String imagePath}) async {
     if (state.isAnalyzing) return;
     state = state.copyWith(isAnalyzing: true, clearError: true, clearResult: true);
@@ -83,7 +83,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
       final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
       final prompt = TextPart('''
 Analyze the image. Identify the primary object accurately (laptop, apple, plastic bottle, spoon, etc).
-Return ONLY valid JSON â€“ no markdown, no explanation:
+Return ONLY valid JSON – no markdown, no explanation:
 {
   "itemName": "specific object name",
   "category": "ONE of: plastic | paper | glass | metal | general | ewaste | organic",
@@ -92,13 +92,13 @@ Return ONLY valid JSON â€“ no markdown, no explanation:
   "preparationSummary": "brief disposal/recycling/composting instruction"
 }
 Rules:
-- Electronics/devices â†’ ewaste
-- Food/fruit/veg/meat/plants â†’ organic
-- Plastic packaging/bottles â†’ plastic
-- Glass jars/bottles â†’ glass
-- Paper/cardboard â†’ paper
-- Metal cans/cutlery â†’ metal
-- Clothing/furniture (if reusable) â†’ general (note to donate)
+- Electronics/devices → ewaste
+- Food/fruit/veg/meat/plants → organic
+- Plastic packaging/bottles → plastic
+- Glass jars/bottles → glass
+- Paper/cardboard → paper
+- Metal cans/cutlery → metal
+- Clothing/furniture (if reusable) → general (note to donate)
 ''');
       final response = await model
           .generateContent([Content.multi([prompt, DataPart('image/jpeg', bytes)])]);
@@ -129,20 +129,20 @@ Rules:
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
   // 2.  MLKit on-device image labeling (OFFLINE, always works)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
   Future<void> _runMLKit(String imagePath) async {
     try {
       // Use higher confidence threshold so it returns more accurate results
-      final options = ImageLabelerOptions(confidenceThreshold: 0.45);
+      final options = ImageLabelerOptions(confidenceThreshold: 0.65);
       final labeler = ImageLabeler(options: options);
       final inputImage = InputImage.fromFilePath(imagePath);
       final labels = await labeler.processImage(inputImage);
       await labeler.close();
 
       if (labels.isEmpty) {
-        // Absolute last resort â€” smart generic result
+        // Absolute last resort — smart generic result
         _emitSmartGeneric();
         return;
       }
@@ -204,39 +204,36 @@ Rules:
     // E-Waste
     if (_anyOf(allLabels, ['computer', 'laptop', 'phone', 'smartphone', 'tablet',
         'keyboard', 'television', 'monitor', 'electronic', 'circuit', 'battery',
-        'charger', 'cable', 'camera', 'headphone', 'printer', 'mouse', 'appliance'])) {
+        'charger', 'cable', 'camera', 'headphone', 'printer', 'mouse pad'])) {
       return 'ewaste';
     }
     // Organic
     if (_anyOf(allLabels, ['fruit', 'vegetable', 'food', 'plant', 'leaf', 'grass',
         'apple', 'banana', 'orange', 'meat', 'fish', 'flower', 'tree', 'produce',
-        'salad', 'bread', 'mushroom', 'berry', 'pear', 'mango', 'potato', 'pepper', 'snack', 'candy', 'cookie', 'chocolate'])) {
+        'salad', 'bread', 'mushroom', 'berry', 'pear', 'mango', 'potato', 'pepper'])) {
       return 'organic';
     }
     // Glass
-    if (_anyOf(allLabels, ['glass', 'jar', 'wine', 'beer', 'perfume'])) {
-      if (!allLabels.contains('plastic') && !allLabels.contains('water bottle') && !allLabels.contains('screen')) {
+    if (_anyOf(allLabels, ['glass', 'bottle', 'jar', 'wine', 'beer', 'drinking'])) {
+      // Make sure it's actually glass, not plastic bottle
+      if (!allLabels.contains('plastic') && !allLabels.contains('water bottle')) {
         return 'glass';
       }
     }
     // Plastic
     if (_anyOf(allLabels, ['plastic', 'water bottle', 'jug', 'container', 'bag',
-        'packaging', 'wrapper', 'polystyrene', 'foam', 'bottle', 'cup', 'lid'])) {
+        'packaging', 'wrapper', 'polystyrene', 'foam'])) {
       return 'plastic';
     }
     // Paper
     if (_anyOf(allLabels, ['paper', 'cardboard', 'box', 'book', 'newspaper',
-        'document', 'magazine', 'envelope', 'notebook', 'carton', 'receipt', 'ticket'])) {
+        'document', 'magazine', 'envelope', 'notebook'])) {
       return 'paper';
     }
     // Metal
     if (_anyOf(allLabels, ['metal', 'can', 'tin', 'aluminium', 'aluminum', 'steel',
-        'spoon', 'fork', 'knife', 'cutlery', 'utensil', 'iron', 'copper', 'silver', 'foil', 'brass'])) {
+        'spoon', 'fork', 'knife', 'cutlery', 'utensil', 'iron', 'copper', 'silver'])) {
       return 'metal';
-    }
-    // Clothing / Textiles (General)
-    if (_anyOf(allLabels, ['clothing', 'shirt', 'pants', 'shoe', 'fabric', 'textile', 'bag', 'backpack'])) {
-      return 'general';
     }
     return 'general';
   }
@@ -247,9 +244,9 @@ Rules:
   String _notesForCategory(String cat) {
     switch (cat) {
       case 'ewaste':
-        return 'Electronic waste â€” do not put in regular bins. Take to an e-waste drop-off centre. Wipe your personal data before recycling.';
+        return 'Electronic waste — do not put in regular bins. Take to an e-waste drop-off centre. Wipe your personal data before recycling.';
       case 'organic':
-        return 'Organic / food waste â€” compost if possible, or place in your local green/food waste bin.';
+        return 'Organic / food waste — compost if possible, or place in your local green/food waste bin.';
       case 'plastic':
         return 'Rinse clean, crush to save space, and place in the plastic recycling bin. Remove lids if different material.';
       case 'glass':
@@ -264,7 +261,7 @@ Rules:
   }
 
   String _humanLabel(String rawLabel) {
-    // MLKit returns labels like "Laptop computer" â€” just capitalise properly
+    // MLKit returns labels like "Laptop computer" — just capitalise properly
     return rawLabel
         .split(' ')
         .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
@@ -285,9 +282,9 @@ Rules:
     return 'general';
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // 3.  Barcode mode â€” look up in database â†’ smart AI fallback
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
+  // 3.  Barcode mode — look up in database → smart AI fallback
+  // ─────────────────────────────────────────────────────────
   Future<void> analyzeBarcode(String barcode,
       {Uint8List? imageBytes, String? imagePath}) async {
     if (state.isAnalyzing) return;
@@ -303,7 +300,7 @@ Rules:
       return;
     }
 
-    // Barcode NOT in database â€” smart fallback:
+    // Barcode NOT in database — smart fallback:
     // 1. Try AI Vision on the camera frame if image is available
     if (imagePath != null) {
       await _runMLKit(imagePath);
@@ -324,13 +321,13 @@ Rules:
       return;
     }
 
-    // 2. No image â€” show the manual category picker
+    // 2. No image — show the manual category picker
     state = state.copyWith(isAnalyzing: false, error: 'NOT_FOUND:$barcode');
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
   // 4.  Demo sample chips
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────
   Future<void> analyzeSample(String sampleName) async {
     state = state.copyWith(isAnalyzing: true, clearError: true, clearResult: true);
     await Future.delayed(const Duration(seconds: 1));
@@ -343,13 +340,13 @@ Rules:
 
     final mocks = <String, ScanItem>{
       'PET Bottle': ScanItem(id: id, barcode: 'MOCK_PET', name: 'Clear PET Beverage Bottle', brand: 'Generic', categoryId: 'plastic', timestamp: now, notes: 'Empty, crush, and place in plastic recycling. Resin code #1 PETE.'),
-      'Pizza Box': ScanItem(id: id, barcode: 'MOCK_PIZZA', name: 'Cardboard Pizza Box', brand: 'Generic', categoryId: 'paper', timestamp: now, notes: 'Tear off greasy parts â†’ general waste. Recycle the clean lid separately.'),
+      'Pizza Box': ScanItem(id: id, barcode: 'MOCK_PIZZA', name: 'Cardboard Pizza Box', brand: 'Generic', categoryId: 'paper', timestamp: now, notes: 'Tear off greasy parts → general waste. Recycle the clean lid separately.'),
       'Aluminum Can': ScanItem(id: id, barcode: 'MOCK_CAN', name: 'Aluminium Soda Can', brand: 'Generic', categoryId: 'metal', timestamp: now, notes: 'Rinse lightly. Do not crush if local facility uses automated sorters.'),
-      'Lithium Battery': ScanItem(id: id, barcode: 'MOCK_BATTERY', name: 'Lithium-ion Battery', brand: 'Generic', categoryId: 'ewaste', timestamp: now, notes: 'âš ï¸ FIRE HAZARD. Never bin. Take to e-waste drop-off point.'),
+      'Lithium Battery': ScanItem(id: id, barcode: 'MOCK_BATTERY', name: 'Lithium-ion Battery', brand: 'Generic', categoryId: 'ewaste', timestamp: now, notes: '⚠️ FIRE HAZARD. Never bin. Take to e-waste drop-off point.'),
       'Glass Jar': ScanItem(id: id, barcode: 'MOCK_GLASS', name: 'Glass Food Jar', brand: 'Generic', categoryId: 'glass', timestamp: now, notes: 'Rinse out food residue. Metal lid can be recycled separately.'),
       'Banana Peel': ScanItem(id: id, barcode: 'MOCK_ORGANIC', name: 'Banana Peel', brand: 'Generic', categoryId: 'organic', timestamp: now, notes: 'Fully compostable. Place in green bin or home compost pile.'),
       'Cardboard Box': ScanItem(id: id, barcode: 'MOCK_CARD', name: 'Cardboard Box', brand: 'Generic', categoryId: 'paper', timestamp: now, notes: 'Flatten before recycling. Remove any plastic tape.'),
-      'Coffee Cup': ScanItem(id: id, barcode: 'MOCK_COFFEE', name: 'Paper Coffee Cup', brand: 'Generic', categoryId: 'general', timestamp: now, notes: 'Usually plastic-lined â€” general waste unless marked compostable.'),
+      'Coffee Cup': ScanItem(id: id, barcode: 'MOCK_COFFEE', name: 'Paper Coffee Cup', brand: 'Generic', categoryId: 'general', timestamp: now, notes: 'Usually plastic-lined — general waste unless marked compostable.'),
     };
 
     for (final key in mocks.keys) {
@@ -359,7 +356,7 @@ Rules:
       }
     }
 
-    // Unknown sample â€” still show something useful
+    // Unknown sample — still show something useful
     state = state.copyWith(
       isAnalyzing: false,
       result: ScanItem(
@@ -369,7 +366,7 @@ Rules:
         brand: 'Demo',
         categoryId: 'general',
         timestamp: now,
-        notes: 'When unsure, check local guidelines. Reduce â†’ Reuse â†’ Recycle.',
+        notes: 'When unsure, check local guidelines. Reduce → Reuse → Recycle.',
       ),
     );
   }
@@ -377,4 +374,3 @@ Rules:
 
 final scannerProvider =
     StateNotifierProvider<ScannerNotifier, ScannerState>((ref) => ScannerNotifier());
-
