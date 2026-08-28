@@ -1,10 +1,10 @@
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/providers/bag_provider.dart';
-import 'package:recyclescan/core/models/scan_item.dart';
-import 'package:intl/intl.dart';
 
 class BagScreen extends ConsumerWidget {
   const BagScreen({super.key});
@@ -14,138 +14,188 @@ class BagScreen extends ConsumerWidget {
     final items = ref.watch(bagProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Recycling Bag'),
-        actions: [
-          if (items.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Clear Bag?'),
-                    content: const Text('Are you sure you want to empty your recycling bag?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('CANCEL'),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 120,
+            backgroundColor: AppColors.background,
+            actions: [
+              if (items.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete_sweep, color: Colors.white),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Clear Bag?'),
+                        content: const Text('Are you sure you want to empty your recycling bag?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              ref.read(bagProvider.notifier).clearBag();
+                              Navigator.pop(context);
+                            },
+                            child: const Text('CLEAR', style: TextStyle(color: AppColors.error)),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () {
-                          ref.read(bagProvider.notifier).clearBag();
-                          Navigator.pop(context);
-                        },
-                        child: const Text('CLEAR'),
-                      ),
-                    ],
+                    );
+                  },
+                ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryGreen, AppColors.primaryLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                );
-              },
-            ),
-        ],
-      ),
-      body: items.isEmpty
-          ? _buildEmptyState(context)
-          : _buildBagList(context, ref, items),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shopping_bag_outlined, size: 80, color: AppColors.textSecondary.withOpacity(0.5)),
-          const SizedBox(height: 16),
-          const Text(
-            'Your bag is empty',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Scan items and add them to your bag\nto keep track of what to recycle.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => context.push('/scanner'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('Scan Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBagList(BuildContext context, WidgetRef ref, List<ScanItem> items) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final isRecyclable = item.categoryId.toLowerCase() != 'general';
-        
-        return Dismissible(
-          key: Key(item.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
-          onDismissed: (_) {
-            ref.read(bagProvider.notifier).removeItem(item.id);
-          },
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 2,
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
+              ),
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16, right: 20),
+              title: Row(
                 children: [
-                  const SizedBox(height: 4),
-                  Text('Added ${DateFormat.yMMMd().format(item.timestamp)}'),
+                  const Text(
+                    'Recycling Bag',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (items.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${items.length}',
+                        style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                 ],
               ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isRecyclable ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  isRecyclable ? 'RECYCLABLE' : 'LANDFILL',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: isRecyclable ? AppColors.success : AppColors.error,
-                  ),
-                ),
-              ),
-              onTap: () => context.push('/guide/${item.categoryId}'),
             ),
           ),
-        );
-      },
+          if (items.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+                    const SizedBox(height: 16),
+                    const Text('Your bag is empty'),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final item = items[index];
+                    final category = RecyclingData.categoriesMap[item.categoryId];
+                    return Dismissible(
+                      key: Key(item.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (_) {
+                        ref.read(bagProvider.notifier).removeItem(item.id);
+                      },
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.delete_outline, color: Colors.white, size: 26),
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: (category?.color ?? AppColors.primaryGreen).withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: (category?.color ?? AppColors.primaryGreen).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: item.localImagePath != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.file(
+                                        File(item.localImagePath!),
+                                        fit: BoxFit.cover,
+                                        cacheWidth: 100,
+                                        cacheHeight: 100,
+                                      ),
+                                    )
+                                  : Icon(Icons.recycling, color: category?.color ?? AppColors.primaryGreen),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                  ),
+                                  Text(
+                                    category?.name ?? item.categoryId,
+                                    style: TextStyle(
+                                      color: category?.color ?? AppColors.primaryGreen,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                              onPressed: () {
+                                ref.read(bagProvider.notifier).removeItem(item.id);
+                              },
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1, end: 0),
+                    );
+                  },
+                  childCount: items.length,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

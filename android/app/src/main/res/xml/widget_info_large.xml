@@ -10,5 +10,5 @@
     android:initialLayout="@layout/widget_large"
     android:previewLayout="@layout/widget_large"
     android:resizeMode="none"
-    android:configure="com.recyclescan.recyclescan.WidgetConfigureActivity"
+    
     android:widgetCategory="home_screen" />

@@ -56,6 +56,7 @@ class CategoryDetailScreen extends StatelessWidget {
                     children: [
                       Image.asset(
                         category.imageAsset,
+                        cacheWidth: 800,
                         fit: BoxFit.cover,
                       ),
                       Container(

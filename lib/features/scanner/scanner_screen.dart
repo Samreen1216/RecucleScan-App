@@ -278,7 +278,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
-                          child: Image.asset(cat.imageAsset, width: 16, height: 16, fit: BoxFit.cover),
+                          child: Image.asset(
+                            cat.imageAsset,
+                            width: 16,
+                            height: 16,
+                            cacheWidth: 40,
+                            cacheHeight: 40,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Text(cat.name,

@@ -1,15 +1,51 @@
-
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/router/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RecycleScanApp extends ConsumerWidget {
+class RecycleScanApp extends ConsumerStatefulWidget {
   const RecycleScanApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RecycleScanApp> createState() => _RecycleScanAppState();
+}
+
+class _RecycleScanAppState extends ConsumerState<RecycleScanApp> {
+  StreamSubscription<Uri?>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    HomeWidget.setAppGroupId('group.com.example.recyclescan');
+    
+    // Handle initial launch from widget
+    HomeWidget.initiallyLaunchedFromHomeWidget().then(_handleWidgetClick);
+    
+    // Listen for widget clicks while app is open
+    _sub = HomeWidget.widgetClicked.listen(_handleWidgetClick);
+  }
+
+  void _handleWidgetClick(Uri? uri) {
+    if (uri != null) {
+      final route = uri.path; // e.g. /scanner
+      if (route.isNotEmpty) {
+        final router = ref.read(appRouterProvider);
+        router.push(route);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'RecycleScan',
@@ -30,7 +66,9 @@ class RecycleScanApp extends ConsumerWidget {
         error: AppColors.error,
         brightness: Brightness.light,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(),
+      textTheme: GoogleFonts.poppinsTextTheme().apply(
+        
+      ),
       scaffoldBackgroundColor: AppColors.background,
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.background,
@@ -85,3 +123,4 @@ class RecycleScanApp extends ConsumerWidget {
     );
   }
 }
+

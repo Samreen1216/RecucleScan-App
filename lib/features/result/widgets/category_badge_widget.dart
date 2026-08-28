@@ -37,7 +37,14 @@ class CategoryBadgeWidget extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.asset(category.imageAsset, width: 28, height: 28, fit: BoxFit.cover),
+              child: Image.asset(
+                category.imageAsset,
+                width: 28,
+                height: 28,
+                cacheWidth: 60,
+                cacheHeight: 60,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 16),

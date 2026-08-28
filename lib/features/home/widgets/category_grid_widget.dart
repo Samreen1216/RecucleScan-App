@@ -45,6 +45,8 @@ class CategoryGridWidget extends StatelessWidget {
                         category.imageAsset,
                         width: 60,
                         height: 60,
+                        cacheWidth: 120,
+                        cacheHeight: 120,
                         fit: BoxFit.cover,
                       ),
                     ),

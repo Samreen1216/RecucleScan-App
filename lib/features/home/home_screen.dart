@@ -141,7 +141,7 @@ class HomeScreen extends ConsumerWidget {
                                   child: Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 26),

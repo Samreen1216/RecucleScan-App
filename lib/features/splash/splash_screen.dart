@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -13,33 +13,31 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    _initApp();
   }
 
-  void _startTimer() {
-    Future.microtask(_navigate);
-  }
+  Future<void> _initApp() async {
+    // 1. Minimum display time for the beautiful splash animations
+    final minDisplayTimer = Future.delayed(const Duration(milliseconds: 2500));
 
-  Future<void> _navigate() async {
+    // 2. Check onboarding status
     final prefs = await SharedPreferences.getInstance();
     final hasOnboarded = prefs.getBool('has_onboarded') ?? false;
+
+    // 3. Wait for the animation timer
+    await minDisplayTimer;
+      
     if (!mounted) return;
+    
+    // 4. Navigate to correct screen
     if (hasOnboarded) {
       context.go('/home');
     } else {
       context.go('/onboarding');
     }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   @override

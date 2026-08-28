@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/services/hive_service.dart';
 
@@ -12,7 +12,7 @@ class BagNotifier extends StateNotifier<List<ScanItem>> {
   }
 
   void _loadItems() {
-    state = HiveService.getBagItems();
+    state = HiveService.getBagItems().reversed.toList();
   }
 
   Future<void> addItem(ScanItem item) async {
@@ -34,3 +34,4 @@ class BagNotifier extends StateNotifier<List<ScanItem>> {
     return state.any((item) => item.id == id);
   }
 }
+

@@ -163,7 +163,14 @@ class RecentScansWidget extends StatelessWidget {
     if (category != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.asset(category.imageAsset, width: 50, height: 50, fit: BoxFit.cover),
+        child: Image.asset(
+          category.imageAsset,
+          width: 50,
+          height: 50,
+          cacheWidth: 100,
+          cacheHeight: 100,
+          fit: BoxFit.cover,
+        ),
       );
     }
     return const Icon(

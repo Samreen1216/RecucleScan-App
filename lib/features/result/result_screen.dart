@@ -118,7 +118,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                 : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -132,7 +132,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.1),
+            color: AppColors.primaryGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: const Row(
@@ -179,7 +179,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
   }
 
   Widget _buildMainResultCard(RecyclingCategory category) {
-    final Color bgColor = _isRecyclable ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1);
+    final Color bgColor = _isRecyclable ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1);
     final Color fgColor = _isRecyclable ? AppColors.success : AppColors.error;
     final String statusText = _isRecyclable ? 'RECYCLABLE' : 'LANDFILL';
     final IconData statusIcon = _isRecyclable ? Icons.check_circle : Icons.cancel;
@@ -190,7 +190,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: fgColor.withOpacity(0.3)),
+        border: Border.all(color: fgColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -311,7 +311,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.textSecondary.withOpacity(0.1),
+        color: AppColors.textSecondary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -409,20 +409,43 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        TextButton(
-          onPressed: () => context.push('/scanner'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primaryGreen,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text(
-            'SCAN ANOTHER ITEM',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => context.pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'SCAN ANOTHER',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
             ),
-          ),
+            Expanded(
+              child: TextButton(
+                onPressed: () => context.go('/home'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black54,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'RETURN HOME',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

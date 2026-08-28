@@ -40,14 +40,8 @@
             </intent-filter>
         </activity>
         
-        <activity android:name=".WidgetConfigureActivity"
-                  android:exported="true"
-                  android:theme="@android:style/Theme.DeviceDefault.Light.Dialog">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-        
+        <service android:name=".WidgetStackService"
+                 android:permission="android.permission.BIND_REMOTEVIEWS" />
         <!-- App Widget Providers for multiple sizes -->
         <receiver android:name=".RecycleScanWidgetProviderCompact" android:exported="true">
             <intent-filter>

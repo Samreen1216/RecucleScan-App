@@ -15,9 +15,12 @@ import 'package:recyclescan/features/quiz/quiz_screen.dart';
 import 'package:recyclescan/features/quiz/quiz_result_screen.dart';
 import 'package:recyclescan/features/bag/bag_screen.dart';
 
+final initialLocationProvider = Provider<String>((ref) => '/home');
+
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final initialLocation = ref.watch(initialLocationProvider);
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: initialLocation,
     routes: [
       GoRoute(
         path: '/splash',

@@ -130,7 +130,14 @@ class _CategoryCard extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(category.imageAsset, width: 26, height: 26, fit: BoxFit.cover),
+                child: Image.asset(
+                  category.imageAsset,
+                  width: 26,
+                  height: 26,
+                  cacheWidth: 60,
+                  cacheHeight: 60,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(width: 16),
