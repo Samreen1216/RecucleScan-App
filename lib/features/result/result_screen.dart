@@ -5,14 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
-import 'package:recyclescan/core/constants/app_strings.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/models/recycling_category.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
-import 'package:recyclescan/core/providers/scan_history_provider.dart';
-import 'package:recyclescan/features/result/widgets/category_badge_widget.dart';
-import 'package:recyclescan/features/result/widgets/disposal_steps_widget.dart';
-import 'package:intl/intl.dart';
+import 'package:recyclescan/core/providers/bag_provider.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
   final ScanItem item;
@@ -24,36 +20,11 @@ class ResultScreen extends ConsumerStatefulWidget {
 }
 
 class _ResultScreenState extends ConsumerState<ResultScreen> {
-  bool _isSaved = false;
 
   RecyclingCategory? get _category =>
       RecyclingData.categoriesMap[widget.item.categoryId];
 
-  Future<void> _saveToHistory() async {
-    if (_isSaved) return;
-    HapticFeedback.mediumImpact();
-    await ref
-        .read(scanHistoryProvider.notifier)
-        .addItem(widget.item);
-    setState(() => _isSaved = true);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 10),
-              Text('Saved to history!'),
-            ],
-          ),
-          backgroundColor: AppColors.primaryGreen,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    }
-  }
+  bool get _isRecyclable => widget.item.categoryId.toLowerCase() != 'general';
 
   @override
   Widget build(BuildContext context) {
@@ -65,204 +36,301 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       );
     }
 
+    final isInBag = ref.watch(bagProvider).any((i) => i.id == widget.item.id);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Scan Result', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+      ),
+      body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Hero header
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: category.color,
-            leading: GestureDetector(
-              onTap: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/home');
-                }
-              },
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back, color: Colors.white),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Image Section
+            _buildImageSection(category).animate().fadeIn(delay: 50.ms).slideY(begin: 0.1),
+            const SizedBox(height: 24),
+            
+            // 2. Main Result Card
+            _buildMainResultCard(category).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
+            const SizedBox(height: 24),
+
+            // 3. How to Dispose
+            _buildHowToDispose(category).animate().fadeIn(delay: 150.ms).slideY(begin: 0.1),
+            const SizedBox(height: 24),
+
+            // 4. Why It Matters
+            _buildWhyItMatters(category).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
+            const SizedBox(height: 24),
+
+            // 5. Bag Button
+            _buildBagButton(isInBag).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
+            const SizedBox(height: 24),
+
+            // 6. Bottom Actions
+            _buildBottomActions(category).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection(RecyclingCategory category) {
+    return Column(
+      children: [
+        Container(
+          width: 160,
+          height: 160,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: category.lightColor,
+            image: widget.item.localImagePath != null
+                ? DecorationImage(
+                    image: FileImage(File(widget.item.localImagePath!)),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: widget.item.localImagePath != null
-                  ? Image.file(
-                      File(widget.item.localImagePath!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildFallbackBackground(category),
-                    )
-                  : _buildFallbackBackground(category),
+            ],
+          ),
+          child: widget.item.localImagePath == null
+              ? Icon(Icons.inventory_2_outlined, size: 60, color: category.color)
+              : null,
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primaryGreen.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.auto_awesome, size: 14, color: AppColors.primaryGreen),
+              SizedBox(width: 6),
+              Text(
+                'AI IDENTIFIED',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          widget.item.name,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: Colors.black87,
+          ),
+        ),
+        if (widget.item.brand != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.item.brand!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
             ),
           ),
+        ],
+      ],
+    );
+  }
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title & Brand
-                  Text(
-                    widget.item.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ).animate().fadeIn(delay: 50.ms).slideY(begin: 0.2, delay: 50.ms),
-                  
-                  if (widget.item.brand != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.item.brand!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, delay: 100.ms),
-                  ],
-                  
-                  const SizedBox(height: 20),
+  Widget _buildMainResultCard(RecyclingCategory category) {
+    final Color bgColor = _isRecyclable ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1);
+    final Color fgColor = _isRecyclable ? AppColors.success : AppColors.error;
+    final String statusText = _isRecyclable ? 'RECYCLABLE' : 'LANDFILL';
+    final IconData statusIcon = _isRecyclable ? Icons.check_circle : Icons.cancel;
+    final String binName = _isRecyclable ? '${category.name} Recycling Bin' : 'General Waste Bin';
 
-                  // Category badge
-                  CategoryBadgeWidget(category: category)
-                      .animate()
-                      .fadeIn(delay: 150.ms)
-                      .slideY(begin: 0.2, delay: 150.ms),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: fgColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(statusIcon, color: fgColor, size: 28),
+              const SizedBox(width: 10),
+              Text(
+                statusText,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: fgColor,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            category.name.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                category.recycleSymbol,
+                style: const TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                binName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-                  const SizedBox(height: 20),
-
-                  // Barcode info
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.divider),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.qr_code,
-                            color: AppColors.textSecondary, size: 20),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Barcode: ${widget.item.barcode}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          DateFormat('MMM d').format(widget.item.timestamp),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 150.ms),
-
-                  const SizedBox(height: 20),
-
-                  // Notes
-                  if (widget.item.notes != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: category.lightColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: category.color.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.info_outline,
-                              color: category.color, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              widget.item.notes!,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: category.color,
-                                fontWeight: FontWeight.w500,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 200.ms),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Disposal steps
-                  DisposalStepsWidget(category: category)
-                      .animate()
-                      .fadeIn(delay: 250.ms)
-                      .slideY(begin: 0.1, delay: 250.ms),
-
-                  const SizedBox(height: 28),
-
-                  // Action buttons
-                  Row(
+  Widget _buildHowToDispose(RecyclingCategory category) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'HOW TO DISPOSE',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: Colors.black54,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...category.preparationTips.asMap().entries.map((entry) {
+          int index = entry.key + 1;
+          String tip = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '0$index',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _isSaved ? null : _saveToHistory,
-                          icon: Icon(
-                            _isSaved
-                                ? Icons.check_circle
-                                : Icons.bookmark_add_outlined,
-                          ),
-                          label: Text(
-                            _isSaved
-                                ? AppStrings.savedToHistory
-                                : AppStrings.saveToHistory,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _isSaved
-                                ? AppColors.success
-                                : category.color,
-                            disabledBackgroundColor: AppColors.success,
-                            disabledForegroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
+                      const Text(
+                        'Step',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black45,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () =>
-                            context.push('/guide/${category.id}'),
-                        icon: const Icon(Icons.menu_book_outlined),
-                        label: const Text('Guide'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: category.color,
-                          side: BorderSide(color: category.color),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                      const SizedBox(height: 4),
+                      Text(
+                        tip,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
                         ),
                       ),
                     ],
-                  ).animate().fadeIn(delay: 350.ms),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
 
-                  const SizedBox(height: 24),
-                ],
+  Widget _buildWhyItMatters(RecyclingCategory category) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.textSecondary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.public, size: 18, color: AppColors.primaryGreen),
+              SizedBox(width: 8),
+              Text(
+                'WHY IT MATTERS',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryGreen,
+                  letterSpacing: 1,
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            category.funFact,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+              height: 1.4,
             ),
           ),
         ],
@@ -270,22 +338,84 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     );
   }
 
-  Widget _buildFallbackBackground(RecyclingCategory category) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [category.color, category.color.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildBagButton(bool isInBag) {
+    return ElevatedButton(
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        if (!isInBag) {
+          ref.read(bagProvider.notifier).addItem(widget.item);
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isInBag ? Colors.black87 : AppColors.primaryGreen,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
+        elevation: 0,
       ),
-      child: const Center(
-        child: Icon(
-          Icons.inventory_2_outlined,
-          size: 72,
-          color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isInBag ? Icons.check : Icons.add_shopping_cart,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            isInBag ? 'ADDED TO RECYCLING BAG' : 'ADD TO RECYCLING BAG',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomActions(RecyclingCategory category) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OutlinedButton(
+          onPressed: () => context.push('/guide/${category.id}'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.black87,
+            side: const BorderSide(color: Colors.black12, width: 2),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: const Text(
+            'VIEW FULL GUIDE',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
         ),
-      ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () => context.push('/scanner'),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primaryGreen,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: const Text(
+            'SCAN ANOTHER ITEM',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

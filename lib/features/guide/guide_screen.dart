@@ -42,7 +42,7 @@ class GuideScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          '📖 ${AppStrings.guideTitle}',
+                          ' ${AppStrings.guideTitle}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,

@@ -109,7 +109,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             const Text(
-                              '📋 ${AppStrings.historyTitle}',
+                              ' ${AppStrings.historyTitle}',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 22,

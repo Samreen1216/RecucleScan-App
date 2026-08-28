@@ -156,7 +156,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          '⚙️ ${AppStrings.settingsTitle}',
+                          ' ${AppStrings.settingsTitle}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 22,

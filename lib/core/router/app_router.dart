@@ -13,6 +13,7 @@ import 'package:recyclescan/features/splash/splash_screen.dart';
 import 'package:recyclescan/shared/widgets/app_shell.dart';
 import 'package:recyclescan/features/quiz/quiz_screen.dart';
 import 'package:recyclescan/features/quiz/quiz_result_screen.dart';
+import 'package:recyclescan/features/bag/bag_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -78,6 +79,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final categoryId = state.pathParameters['categoryId']!;
           return CategoryDetailScreen(categoryId: categoryId);
         },
+      ),
+      GoRoute(
+        path: '/bag',
+        builder: (context, state) => const BagScreen(),
       ),
     ],
   );
