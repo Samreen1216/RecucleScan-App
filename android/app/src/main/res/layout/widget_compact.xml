@@ -21,8 +21,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="RecycleScan"
-                android:textSize="15sp"
-                android:textStyle="bold"
+                android:textSize="18sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textStyle="bold"
                 android:textColor="#1B5E20"
                 android:layout_marginBottom="2dp" />
 
@@ -30,8 +31,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Scan waste. Sort smarter."
-                android:textSize="10sp"
-                android:textColor="#5C8A5C"
+                android:textSize="16sp"
+                android:textColor="#2E7D32"
                 android:layout_marginBottom="12dp" />
 
             <LinearLayout
@@ -45,8 +46,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="SCAN NOW"
-                    android:textSize="11sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="#FFFFFF" />
             </LinearLayout>
         </LinearLayout>
@@ -64,8 +66,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="YOUR IMPACT"
-                android:textSize="9sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                 android:textColor="#388E3C"
                 android:layout_marginBottom="4dp" />
 
@@ -76,14 +79,16 @@
                 android:text="0"
                 android:textSize="36sp"
                 android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                 android:textColor="#1B5E20" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Items Sorted"
-                android:textSize="11sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                 android:textColor="#388E3C"
                 android:layout_marginBottom="2dp" />
 
@@ -92,8 +97,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0 Recycled"
-                android:textSize="10sp"
-                android:textColor="#7CB97C" />
+                android:textSize="16sp"
+                android:textColor="#2E7D32" />
         </LinearLayout>
 
         <!-- View 2: Eco Tip -->
@@ -109,8 +114,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ECO TIP"
-                android:textSize="9sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                 android:textColor="#388E3C"
                 android:layout_marginBottom="8dp" />
 
@@ -119,7 +125,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Scan items to learn how to recycle them properly!"
-                android:textSize="11sp"
+                android:textSize="13sp"
                 android:textColor="#2D5A2D"
                 android:maxLines="4"
                 android:ellipsize="end" />
@@ -135,9 +141,9 @@
 
         <LinearLayout
             android:id="@+id/btn_prev_view"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="10dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="12dp"
             android:background="@drawable/widget_chip_bg"
             android:gravity="center">
             <TextView
@@ -145,8 +151,9 @@
                 android:layout_height="wrap_content"
                 android:text="&lt;"
                 android:textColor="#1B5E20"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
@@ -157,9 +164,9 @@
 
         <LinearLayout
             android:id="@+id/btn_next_view"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="10dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="12dp"
             android:background="@drawable/widget_chip_bg"
             android:gravity="center">
             <TextView
@@ -167,8 +174,9 @@
                 android:layout_height="wrap_content"
                 android:text="&gt;"
                 android:textColor="#1B5E20"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

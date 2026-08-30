@@ -28,7 +28,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="RecycleScan"
-                    android:textSize="15sp"
+                    android:textSize="18sp"
+                    android:fontFamily="sans-serif-black"
                     android:textStyle="bold"
                     android:textColor="#1B5E20" />
 
@@ -36,8 +37,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sort. Save. Sustain."
-                    android:textSize="9sp"
-                    android:textColor="#7CB97C" />
+                    android:textSize="13sp"
+                    android:textColor="#2E7D32" />
             </LinearLayout>
 
             <!-- Stats Row -->
@@ -60,15 +61,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="22sp"
+                        android:textSize="28sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Scanned"
-                        android:textSize="9sp"
-                        android:textColor="#5C8A5C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -84,15 +86,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="22sp"
+                        android:textSize="28sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#2E7D32" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Recycled"
-                        android:textSize="9sp"
-                        android:textColor="#5C8A5C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -107,15 +110,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0%"
-                        android:textSize="20sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#388E3C" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Rate"
-                        android:textSize="9sp"
-                        android:textColor="#5C8A5C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -137,8 +141,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SCAN ITEM"
-                        android:textSize="10sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#FFFFFF" />
                 </LinearLayout>
 
@@ -153,8 +158,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="HISTORY"
-                        android:textSize="9sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20" />
                 </LinearLayout>
             </LinearLayout>
@@ -180,8 +186,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="RECENT SCANS"
-                    android:textSize="11sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="#1B5E20" />
 
                 <LinearLayout
@@ -196,8 +203,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="+ SCAN"
-                        android:textSize="9sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#FFFFFF" />
                 </LinearLayout>
             </LinearLayout>
@@ -224,8 +232,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="No scans yet"
-                        android:textSize="12sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20"
                         android:maxLines="1"
                         android:ellipsize="end" />
@@ -234,8 +243,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Tap + SCAN to get started"
-                        android:textSize="9sp"
-                        android:textColor="#7CB97C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -260,8 +269,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="--"
-                        android:textSize="12sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20"
                         android:maxLines="1"
                         android:ellipsize="end" />
@@ -270,8 +280,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="--"
-                        android:textSize="9sp"
-                        android:textColor="#7CB97C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -286,8 +296,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="VIEW FULL HISTORY"
-                    android:textSize="10sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="#1B5E20" />
             </LinearLayout>
         </LinearLayout>
@@ -312,8 +323,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="ECO TIP"
-                    android:textSize="11sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="#1B5E20" />
 
                 <LinearLayout
@@ -328,8 +340,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="EXPLORE"
-                        android:textSize="9sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20" />
                 </LinearLayout>
             </LinearLayout>
@@ -348,7 +361,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Properly sorting recyclables saves energy, reduces landfill waste, and protects ecosystems. Every scan makes a difference!"
-                    android:textSize="11sp"
+                    android:textSize="13sp"
                     android:textColor="#2D5A2D"
                     android:maxLines="5"
                     android:ellipsize="end" />
@@ -363,15 +376,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="This week: "
-                        android:textSize="9sp"
-                        android:textColor="#7CB97C" />
+                        android:textSize="13sp"
+                        android:textColor="#2E7D32" />
                     <TextView
                         android:id="@+id/tv_items_this_week"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="+0 items"
-                        android:textSize="9sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20" />
                 </LinearLayout>
             </LinearLayout>
@@ -393,8 +407,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SCAN"
-                        android:textSize="10sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#FFFFFF" />
                 </LinearLayout>
 
@@ -409,8 +424,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="HISTORY"
-                        android:textSize="10sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                         android:textColor="#1B5E20" />
                 </LinearLayout>
             </LinearLayout>
@@ -426,9 +442,9 @@
 
         <LinearLayout
             android:id="@+id/btn_prev_view"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="10dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="12dp"
             android:background="@drawable/widget_chip_bg"
             android:gravity="center">
             <TextView
@@ -436,8 +452,9 @@
                 android:layout_height="wrap_content"
                 android:text="&lt;"
                 android:textColor="#1B5E20"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
@@ -448,9 +465,9 @@
 
         <LinearLayout
             android:id="@+id/btn_next_view"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_margin="10dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="12dp"
             android:background="@drawable/widget_chip_bg"
             android:gravity="center">
             <TextView
@@ -458,8 +475,9 @@
                 android:layout_height="wrap_content"
                 android:text="&gt;"
                 android:textColor="#1B5E20"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
