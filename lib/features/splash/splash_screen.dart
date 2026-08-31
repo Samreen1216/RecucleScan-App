@@ -23,20 +23,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initApp() async {
-    // 1. Minimum display time for the beautiful splash animations
-    final minDisplayTimer = Future.delayed(const Duration(milliseconds: 2500));
+    // 1. Parallelize initializations with a snappy display timer
+    final minDisplayTimer = Future.delayed(const Duration(milliseconds: 800));
+    final prefsFuture = SharedPreferences.getInstance();
+    final hiveFuture = HiveService.openBoxes();
 
-    // 2. Check onboarding status
-    final prefs = await SharedPreferences.getInstance();
-    await HiveService.openBoxes();
+    final results = await Future.wait([
+      minDisplayTimer,
+      prefsFuture,
+      hiveFuture,
+    ]);
+
+    if (!mounted) return;
+
+    // 2. Check onboarding status and navigate
+    final prefs = results[1] as SharedPreferences;
     final hasOnboarded = prefs.getBool('has_onboarded') ?? false;
 
-    // 3. Wait for the animation timer
-    await minDisplayTimer;
-      
-    if (!mounted) return;
-    
-    // 4. Navigate to correct screen
     if (hasOnboarded) {
       context.go('/home');
     } else {
@@ -77,10 +80,10 @@ class _SplashScreenState extends State<SplashScreen> {
             )
                 .animate()
                 .scale(
-                  duration: 600.ms,
-                  curve: Curves.elasticOut,
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack,
                 )
-                .fadeIn(duration: 400.ms),
+                .fadeIn(duration: 300.ms),
 
             const SizedBox(height: 28),
 
@@ -95,8 +98,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             )
                 .animate()
-                .fadeIn(delay: 300.ms, duration: 500.ms)
-                .slideY(begin: 0.3, end: 0, delay: 300.ms, duration: 500.ms),
+                .fadeIn(delay: 150.ms, duration: 350.ms)
+                .slideY(begin: 0.2, end: 0, delay: 150.ms, duration: 350.ms),
 
             const SizedBox(height: 10),
 
@@ -109,19 +112,19 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             )
                 .animate()
-                .fadeIn(delay: 500.ms, duration: 500.ms),
+                .fadeIn(delay: 250.ms, duration: 350.ms),
 
-            const SizedBox(height: 80),
+            const SizedBox(height: 60),
 
             // Loading indicator
             SizedBox(
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               child: CircularProgressIndicator(
                 color: Colors.white.withValues(alpha: 0.8),
                 strokeWidth: 3,
               ),
-            ).animate().fadeIn(delay: 700.ms, duration: 400.ms),
+            ).animate().fadeIn(delay: 350.ms, duration: 300.ms),
           ],
         ),
       ),

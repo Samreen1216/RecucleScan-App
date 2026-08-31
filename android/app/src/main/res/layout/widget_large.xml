@@ -156,7 +156,7 @@
                 android:gravity="center_vertical">
                 
                 <LinearLayout
-                    android:id="@+id/btn_prev_view"
+                    android:id="@+id/btn_prev_0"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
@@ -177,7 +177,7 @@
                 </LinearLayout>
                 
                 <LinearLayout
-                    android:id="@+id/btn_next_view"
+                    android:id="@+id/btn_next_0"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
@@ -260,7 +260,7 @@
                 android:gravity="center_vertical">
                 
                 <LinearLayout
-                    android:id="@+id/btn_prev_view"
+                    android:id="@+id/btn_prev_1"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
@@ -281,7 +281,7 @@
                 </LinearLayout>
                 
                 <LinearLayout
-                    android:id="@+id/btn_next_view"
+                    android:id="@+id/btn_next_1"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
@@ -427,7 +427,7 @@
                 android:gravity="center_vertical">
                 
                 <LinearLayout
-                    android:id="@+id/btn_prev_view"
+                    android:id="@+id/btn_prev_2"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
@@ -448,7 +448,7 @@
                 </LinearLayout>
                 
                 <LinearLayout
-                    android:id="@+id/btn_next_view"
+                    android:id="@+id/btn_next_2"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:background="@drawable/widget_nav_button"
