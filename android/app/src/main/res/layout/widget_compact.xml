@@ -8,175 +8,237 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- View 0: Branding + Scan -->
+        <!-- VIEW 0: OVERVIEW -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center"
-            android:background="@drawable/widget_bg"
-            android:padding="14dp">
-
+            android:background="@drawable/widget_bg_round"
+            android:padding="12dp">
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="RecycleScan"
-                android:textSize="18sp"
-                    android:fontFamily="sans-serif-black"
-                    android:textStyle="bold"
-                android:textColor="#1B5E20"
-                android:layout_marginBottom="2dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Scan waste. Sort smarter."
                 android:textSize="16sp"
-                android:textColor="#2E7D32"
-                android:layout_marginBottom="12dp" />
-
-            <LinearLayout
-                android:id="@+id/btn_scan"
-                android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:background="@drawable/widget_button_bg"
-                android:gravity="center"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SCAN NOW"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="#FFFFFF" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- View 1: Stats -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:background="@drawable/widget_bg"
-            android:padding="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="YOUR IMPACT"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                android:textColor="#388E3C"
-                android:layout_marginBottom="4dp" />
-
+                android:fontFamily="sans-serif-black"
+                android:textColor="#1B5E20" />
+            
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            
             <TextView
                 android:id="@+id/tv_total_items"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textSize="36sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                android:textColor="#1B5E20" />
-
+                android:text="-"
+                android:textSize="32sp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#1B5E20"
+                android:includeFontPadding="false" />
+                
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Items Sorted"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                android:textColor="#388E3C"
-                android:layout_marginBottom="2dp" />
-
-            <TextView
-                android:id="@+id/tv_items_recycled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 Recycled"
-                android:textSize="16sp"
+                android:text="Total Scanned"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="#2E7D32" />
+                
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                
+                <LinearLayout
+                    android:id="@+id/btn_prev_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&lt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_scan"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:background="@drawable/widget_button_primary"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SCAN" android:textColor="#FFFFFF" android:fontFamily="sans-serif-black" android:textSize="13sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_next_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&gt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- View 2: Eco Tip -->
+        <!-- VIEW 1: ECO TIP -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center"
-            android:background="@drawable/widget_bg"
-            android:padding="14dp">
-
+            android:background="@drawable/widget_bg_round"
+            android:padding="12dp">
+            
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ECO TIP"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                android:textColor="#388E3C"
-                android:layout_marginBottom="8dp" />
-
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#1B5E20" />
+                
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            
             <TextView
                 android:id="@+id/tv_eco_tip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Scan items to learn how to recycle them properly!"
+                android:text="Flatten boxes before recycling to save space."
                 android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="#2D5A2D"
                 android:maxLines="4"
                 android:ellipsize="end" />
+                
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                
+                <LinearLayout
+                    android:id="@+id/btn_prev_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&lt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_guides"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:background="@drawable/widget_button_secondary"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXPLORE" android:textColor="#1B5E20" android:fontFamily="sans-serif-black" android:textSize="12sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_next_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&gt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
+        
+        <!-- VIEW 2: RECENT SCAN -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/widget_bg_round"
+            android:padding="12dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RECENT SCAN"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="#1B5E20" />
+                
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            
+            <LinearLayout
+                android:id="@+id/view_recent_scan_0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/widget_card_bg"
+                android:padding="12dp">
+                <TextView
+                    android:id="@+id/tv_recent_0_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="#1B5E20"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+                <TextView
+                    android:id="@+id/tv_recent_0_cat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="#2E7D32"
+                    android:layout_marginTop="2dp"
+                    android:singleLine="true" />
+            </LinearLayout>
+                
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                
+                <LinearLayout
+                    android:id="@+id/btn_prev_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&lt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_scan3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:background="@drawable/widget_button_secondary"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+ SCAN" android:textColor="#1B5E20" android:fontFamily="sans-serif-black" android:textSize="12sp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:id="@+id/btn_next_view"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/widget_nav_button"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&gt;" android:textColor="#1B5E20" android:textStyle="bold" android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
     </ViewFlipper>
-
-    <!-- Nav buttons: prev (bottom-left) next (bottom-right) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="bottom">
-
-        <LinearLayout
-            android:id="@+id/btn_prev_view"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_margin="12dp"
-            android:background="@drawable/widget_chip_bg"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="&lt;"
-                android:textColor="#1B5E20"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal" />
-
-        <LinearLayout
-            android:id="@+id/btn_next_view"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_margin="12dp"
-            android:background="@drawable/widget_chip_bg"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="&gt;"
-                android:textColor="#1B5E20"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-    </LinearLayout>
 </FrameLayout>
