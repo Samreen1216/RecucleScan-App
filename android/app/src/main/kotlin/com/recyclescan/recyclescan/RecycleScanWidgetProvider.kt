@@ -1,4 +1,4 @@
-package com.recyclescan.recyclescan
+﻿package com.recyclescan.recyclescan
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -14,35 +14,19 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
 
     abstract fun getLayoutId(): Int
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
-        }
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        for (appWidgetId in appWidgetIds) updateAppWidget(context, appWidgetManager, appWidgetId)
     }
 
-    override fun onAppWidgetOptionsChanged(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        newOptions: Bundle
-    ) {
+    override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
         updateAppWidget(context, appWidgetManager, appWidgetId)
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
     }
 
-    private fun updateAppWidget(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int
-    ) {
+    private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         val layoutId = getLayoutId()
         val views = RemoteViews(context.packageName, layoutId)
 
-        // Fetch data
         val widgetData = HomeWidgetPlugin.getData(context)
         val currentIndex = widgetData.getInt("widget_view_index_$appWidgetId", 0)
         
@@ -50,35 +34,25 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
         val itemsRecycled = widgetData.getInt("items_recycled", 0)
         val itemsThisWeek = widgetData.getInt("items_this_week", 0)
         val recyclablePercentage = widgetData.getInt("recyclable_percentage", 0)
-        val ecoTip = widgetData.getString(
-            "eco_tip",
-            "Scan any item to discover how to recycle it and help protect our planet."
-        ) ?: ""
+        val ecoTip = widgetData.getString("eco_tip", "Scan any item to discover how to recycle it and help protect our planet.") ?: ""
 
         val recent0Name = widgetData.getString("recent_0_name", "No scans yet") ?: "No scans yet"
         val recent0Cat  = widgetData.getString("recent_0_category", "Tap + SCAN to start") ?: "Tap + SCAN to start"
-        val recent0Status = widgetData.getString("recent_0_status", "") ?: ""
         val recent1Name = widgetData.getString("recent_1_name", "-") ?: "-"
         val recent1Cat  = widgetData.getString("recent_1_category", "-") ?: "-"
-        val recent2Name = widgetData.getString("recent_2_name", "-") ?: "-"
-        val recent2Cat  = widgetData.getString("recent_2_category", "-") ?: "-"
 
-        // Bind data
         try { views.setTextViewText(R.id.tv_total_items, totalItems.toString()) } catch (e: Exception) {}
-        try { views.setTextViewText(R.id.tv_items_recycled, itemsRecycled.toString() + " Recycled") } catch (e: Exception) {}
+        try { views.setTextViewText(R.id.tv_items_recycled, itemsRecycled.toString()) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_items_this_week, "+$itemsThisWeek items") } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recyclable_percentage, "$recyclablePercentage%") } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_eco_tip, ecoTip) } catch (e: Exception) {}
-        try { views.setTextViewText(R.id.tv_eco_tip2, ecoTip) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_0_name, recent0Name) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_0_cat, recent0Cat) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_1_name, recent1Name) } catch (e: Exception) {}
         try { views.setTextViewText(R.id.tv_recent_1_cat, recent1Cat) } catch (e: Exception) {}
 
-        // Set the displayed view manually
         try { views.setDisplayedChild(R.id.view_flipper, currentIndex) } catch (e: Exception) {}
 
-        // Set Click Intents
         fun getPendingIntent(route: String): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW
@@ -89,38 +63,29 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
         }
 
         try { views.setOnClickPendingIntent(R.id.btn_scan, getPendingIntent("/scanner")) } catch (e: Exception) {}
-        try { views.setOnClickPendingIntent(R.id.btn_scan2, getPendingIntent("/scanner")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_scan3, getPendingIntent("/scanner")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_history, getPendingIntent("/history")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_history2, getPendingIntent("/history")) } catch (e: Exception) {}
-        try { views.setOnClickPendingIntent(R.id.btn_history3, getPendingIntent("/history")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.btn_guides, getPendingIntent("/guide")) } catch (e: Exception) {}
         try { views.setOnClickPendingIntent(R.id.view_recent_scan_0, getPendingIntent("/history")) } catch (e: Exception) {}
 
-        // Next/Prev button manual control
         val nextIntent = Intent(context, javaClass).apply {
             action = "ACTION_NEXT_VIEW"
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }
-        val nextPendingIntent = PendingIntent.getBroadcast(
-            context,
-            appWidgetId,
-            nextIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        try { views.setOnClickPendingIntent(R.id.btn_next_view, nextPendingIntent) } catch (e: Exception) {}
+        val nextPI = PendingIntent.getBroadcast(context, appWidgetId, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        try { views.setOnClickPendingIntent(R.id.btn_next_0, nextPI) } catch (e: Exception) {}
+        try { views.setOnClickPendingIntent(R.id.btn_next_1, nextPI) } catch (e: Exception) {}
+        try { views.setOnClickPendingIntent(R.id.btn_next_2, nextPI) } catch (e: Exception) {}
 
         val prevIntent = Intent(context, javaClass).apply {
             action = "ACTION_PREV_VIEW"
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }
-        val prevPendingIntent = PendingIntent.getBroadcast(
-            context,
-            appWidgetId + 1000,
-            prevIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        try { views.setOnClickPendingIntent(R.id.btn_prev_view, prevPendingIntent) } catch (e: Exception) {}
+        val prevPI = PendingIntent.getBroadcast(context, appWidgetId + 1000, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        try { views.setOnClickPendingIntent(R.id.btn_prev_0, prevPI) } catch (e: Exception) {}
+        try { views.setOnClickPendingIntent(R.id.btn_prev_1, prevPI) } catch (e: Exception) {}
+        try { views.setOnClickPendingIntent(R.id.btn_prev_2, prevPI) } catch (e: Exception) {}
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
@@ -148,14 +113,7 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
     }
 }
 
-class RecycleScanWidgetProviderCompact : RecycleScanWidgetProvider() {
-    override fun getLayoutId() = R.layout.widget_compact
-}
+class RecycleScanWidgetProviderCompact : RecycleScanWidgetProvider() { override fun getLayoutId() = R.layout.widget_compact }
+class RecycleScanWidgetProviderWide : RecycleScanWidgetProvider() { override fun getLayoutId() = R.layout.widget_wide }
+class RecycleScanWidgetProviderLarge : RecycleScanWidgetProvider() { override fun getLayoutId() = R.layout.widget_large }
 
-class RecycleScanWidgetProviderWide : RecycleScanWidgetProvider() {
-    override fun getLayoutId() = R.layout.widget_wide
-}
-
-class RecycleScanWidgetProviderLarge : RecycleScanWidgetProvider() {
-    override fun getLayoutId() = R.layout.widget_large
-}
