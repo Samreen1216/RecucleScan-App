@@ -35,20 +35,18 @@ class WidgetService {
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       final itemsThisWeek = allItems.where((item) => item.timestamp.isAfter(startOfWeek)).length;
 
-      // Last 3 recent scans
-      final recentItems = allItems.take(3).toList();
+      // Calculate category counts
+      final countPlastic = allItems.where((i) => i.categoryId.toLowerCase() == 'plastic').length;
+      final countPaper   = allItems.where((i) => i.categoryId.toLowerCase() == 'paper').length;
+      final countGlass   = allItems.where((i) => i.categoryId.toLowerCase() == 'glass').length;
+      final countMetal   = allItems.where((i) => i.categoryId.toLowerCase() == 'metal').length;
+      final countGeneral = allItems.where((i) => i.categoryId.toLowerCase() == 'general').length;
+
+      // Last 5 recent scans
+      final recentItems = allItems.take(5).toList();
       
       final random = Random();
-      
-      // Pick dynamic content
       String ecoTip = _ecoTips[random.nextInt(_ecoTips.length)];
-      
-      // Quiz dummy data for widget
-      String quizQuestion = "What is the most recycled material in the world?";
-      String quizOptionA = "A) Plastic";
-      String quizOptionB = "B) Aluminum";
-      String quizOptionC = "C) Paper";
-      String quizOptionD = "D) Steel";
 
       // Save primitive data for Native Android XML Layout
       await Future.wait([
@@ -56,27 +54,33 @@ class WidgetService {
         HomeWidget.saveWidgetData<int>('items_recycled', recycledItems),
         HomeWidget.saveWidgetData<int>('items_this_week', itemsThisWeek),
         HomeWidget.saveWidgetData<int>('recyclable_percentage', recyclablePercentage),
+        HomeWidget.saveWidgetData<int>('count_plastic', countPlastic),
+        HomeWidget.saveWidgetData<int>('count_paper', countPaper),
+        HomeWidget.saveWidgetData<int>('count_glass', countGlass),
+        HomeWidget.saveWidgetData<int>('count_metal', countMetal),
+        HomeWidget.saveWidgetData<int>('count_general', countGeneral),
         HomeWidget.saveWidgetData<String>('eco_tip', ecoTip),
-        HomeWidget.saveWidgetData<String>('quiz_question', quizQuestion),
-        HomeWidget.saveWidgetData<String>('quiz_option_a', quizOptionA),
-        HomeWidget.saveWidgetData<String>('quiz_option_b', quizOptionB),
-        HomeWidget.saveWidgetData<String>('quiz_option_c', quizOptionC),
-        HomeWidget.saveWidgetData<String>('quiz_option_d', quizOptionD),
       ]);
 
-      // Save recent items
+      // Save up to 5 recent items with formatted date
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       final recentSaves = <Future<void>>[];
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 5; i++) {
         if (i < recentItems.length) {
           final item = recentItems[i];
-          bool isRecyclable = item.categoryId.toLowerCase() != 'general';
+          final dt = item.timestamp;
+          final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+          final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+          final minute = dt.minute.toString().padLeft(2, '0');
+          final formattedDate = '${dt.day} ${months[dt.month - 1]}, $hour:$minute $ampm';
+          
           recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_name', item.name));
           recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_category', item.categoryId.toUpperCase()));
-          recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_status', isRecyclable ? "✓ Recyclable" : "✗ Not Recyclable"));
+          recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_time', formattedDate));
         } else {
           recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_name', "-"));
           recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_category', "-"));
-          recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_status', "-"));
+          recentSaves.add(HomeWidget.saveWidgetData<String>('recent_${i}_time', "-"));
         }
       }
       await Future.wait(recentSaves);

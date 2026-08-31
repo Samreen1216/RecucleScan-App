@@ -40,8 +40,6 @@
             </intent-filter>
         </activity>
         
-        <service android:name=".WidgetStackService"
-                 android:permission="android.permission.BIND_REMOTEVIEWS" />
         <!-- App Widget Providers for multiple sizes -->
         <receiver android:name=".RecycleScanWidgetProviderCompact" android:exported="true">
             <intent-filter>

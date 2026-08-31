@@ -1,4 +1,5 @@
 import 'package:recyclescan/core/services/hive_service.dart';
+import 'package:recyclescan/core/services/widget_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -41,6 +42,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final hasOnboarded = prefs.getBool('has_onboarded') ?? false;
 
     if (hasOnboarded) {
+      // Sync fresh widget data
+      WidgetService.updateWidgetData(allItems: HiveService.getAllScanItems());
       context.go('/home');
     } else {
       context.go('/onboarding');

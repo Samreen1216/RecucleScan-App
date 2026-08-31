@@ -6,6 +6,7 @@ import 'package:recyclescan/app.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/router/app_router.dart';
 import 'package:recyclescan/core/services/hive_service.dart';
+import 'package:recyclescan/core/services/widget_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(ScanItemAdapter());
   unawaited(HiveService.openBoxes());
+  unawaited(WidgetService.initialize());
 
   runApp(
     ProviderScope(
