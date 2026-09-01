@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
+import 'package:recyclescan/core/services/hive_service.dart';
 import 'package:recyclescan/features/guide/category_detail_screen.dart';
 import 'package:recyclescan/features/guide/guide_screen.dart';
 import 'package:recyclescan/features/history/history_screen.dart';
@@ -56,9 +57,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScannerScreen(),
       ),
       GoRoute(
+        path: '/result/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'];
+          final item = state.extra is ScanItem
+              ? state.extra as ScanItem
+              : (id != null ? HiveService.getScanItemById(id) : null);
+          return ResultScreen(item: item, itemId: id);
+        },
+      ),
+      GoRoute(
         path: '/result',
         builder: (context, state) {
-          final item = state.extra as ScanItem;
+          final item = state.extra is ScanItem ? state.extra as ScanItem : null;
           return ResultScreen(item: item);
         },
       ),

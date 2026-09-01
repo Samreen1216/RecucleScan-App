@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
@@ -227,7 +227,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                                   ),
                                 ),
                               ),
-                            ).animate(key: ValueKey('${_currentIndex}-${index}')).fadeIn(delay: (50 * index).ms).slideX(begin: 0.1, end: 0);
+                            ).animate(key: ValueKey('$_currentIndex-$index')).fadeIn(delay: (50 * index).ms).slideX(begin: 0.1, end: 0);
                           }),
                         ],
                       ),

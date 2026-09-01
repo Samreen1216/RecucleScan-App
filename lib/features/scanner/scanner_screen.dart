@@ -20,20 +20,24 @@ class ScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _ScannerScreenState extends ConsumerState<ScannerScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   // ── Camera ──
   CameraController? _cameraController;
   List<CameraDescription> _cameras = [];
   int _selectedCameraIdx = 0;
   bool _isCameraInitialized = false;
+  bool _isSwitchingCamera = false;
+  bool _isStreaming = false;
 
   // ── Animation ──
   late AnimationController _scanLineCtrl;
   late Animation<double> _scanLineAnim;
 
-  // ── MLKit Barcode ──
+  // ── MLKit Barcode & Throttling ──
   late final BarcodeScanner _barcodeScanner;
   bool _isProcessingFrame = false;
+  DateTime _lastFrameTime = DateTime.fromMillisecondsSinceEpoch(0);
+  static const int _minFrameIntervalMs = 250; // Throttle to max 4 frames per sec
   String? _lastDetectedBarcode;
 
   // ── Gallery ──
@@ -42,6 +46,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _barcodeScanner = BarcodeScanner();
     _initCamera();
 
@@ -55,11 +60,29 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     );
   }
 
-  // ── Camera init ──
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) {
+      return;
+    }
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _stopStreamSafely();
+      controller.dispose();
+      _cameraController = null;
+      if (mounted) setState(() => _isCameraInitialized = false);
+    } else if (state == AppLifecycleState.resumed) {
+      if (_cameras.isNotEmpty) {
+        _setCamera(_cameras[_selectedCameraIdx]);
+      }
+    }
+  }
+
+  // ── Camera initialization ──
   Future<void> _initCamera() async {
     try {
       _cameras = await availableCameras();
-      if (_cameras.isNotEmpty) {
+      if (_cameras.isNotEmpty && mounted) {
         await _setCamera(_cameras[_selectedCameraIdx]);
       }
     } catch (e) {
@@ -68,7 +91,22 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 
   Future<void> _setCamera(CameraDescription desc) async {
-    final prev = _cameraController;
+    if (!mounted) return;
+    setState(() => _isCameraInitialized = false);
+
+    // 1. Safely stop any running image stream
+    await _stopStreamSafely();
+
+    // 2. Completely dispose old controller before initializing a new one (prevents camera hardware HAL locks)
+    final oldCtrl = _cameraController;
+    _cameraController = null;
+    try {
+      await oldCtrl?.dispose();
+    } catch (e) {
+      debugPrint('Error disposing old camera controller: $e');
+    }
+
+    // 3. Create and initialize new controller
     final ctrl = CameraController(
       desc,
       ResolutionPreset.high,
@@ -77,38 +115,96 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           ? ImageFormatGroup.nv21
           : ImageFormatGroup.bgra8888,
     );
-    _cameraController = ctrl;
 
     try {
       await ctrl.initialize();
-      if (mounted) setState(() => _isCameraInitialized = true);
+      if (!mounted) {
+        await ctrl.dispose();
+        return;
+      }
+      _cameraController = ctrl;
+      setState(() => _isCameraInitialized = true);
+
+      // 4. If in barcode mode, start stream safely
+      if (ref.read(scannerProvider).mode == ScannerMode.barcode) {
+        await _startStreamSafely();
+      }
     } catch (e) {
       debugPrint('Camera setup error: $e');
+      if (mounted) setState(() => _isCameraInitialized = false);
     }
+  }
 
-    await prev?.dispose();
+  bool get _isFrontCamera {
+    if (_cameras.isEmpty || _selectedCameraIdx >= _cameras.length) return false;
+    return _cameras[_selectedCameraIdx].lensDirection == CameraLensDirection.front;
   }
 
   Future<void> _toggleCamera() async {
-    if (_cameras.length < 2) return;
-    setState(() => _isCameraInitialized = false);
-    _selectedCameraIdx = (_selectedCameraIdx + 1) % _cameras.length;
-    await _setCamera(_cameras[_selectedCameraIdx]);
+    if (_cameras.length < 2 || _isSwitchingCamera) return;
+    _isSwitchingCamera = true;
+    try {
+      final nextIdx = (_selectedCameraIdx + 1) % _cameras.length;
+      await _setCamera(_cameras[nextIdx]);
+      _selectedCameraIdx = nextIdx;
+    } finally {
+      _isSwitchingCamera = false;
+    }
   }
 
   Future<void> _toggleFlash() async {
-    if (_cameraController == null || !_isCameraInitialized) return;
-    final cur = _cameraController!.value.flashMode;
-    await _cameraController!
-        .setFlashMode(cur == FlashMode.torch ? FlashMode.off : FlashMode.torch);
-    setState(() {});
+    if (_cameraController == null || !_isCameraInitialized || _isFrontCamera) return;
+    try {
+      final cur = _cameraController!.value.flashMode;
+      await _cameraController!.setFlashMode(
+        cur == FlashMode.torch ? FlashMode.off : FlashMode.torch,
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('Toggle flash error: $e');
+    }
   }
 
-  // ── Live barcode scanning (called on every camera frame in barcode mode) ──
+  // ── Safe Image Stream Management ──
+  Future<void> _startStreamSafely() async {
+    final ctrl = _cameraController;
+    if (ctrl == null || !ctrl.value.isInitialized || _isStreaming) return;
+    try {
+      _isStreaming = true;
+      await ctrl.startImageStream(_processCameraFrame);
+    } catch (e) {
+      _isStreaming = false;
+      debugPrint('Error starting image stream: $e');
+    }
+  }
+
+  Future<void> _stopStreamSafely() async {
+    final ctrl = _cameraController;
+    if (ctrl == null || !_isStreaming) return;
+    _isStreaming = false;
+    try {
+      if (ctrl.value.isStreamingImages) {
+        await ctrl.stopImageStream();
+      }
+    } catch (e) {
+      debugPrint('Error stopping image stream: $e');
+    }
+  }
+
+  // ── Live barcode frame processing (throttled & non-blocking) ──
   Future<void> _processCameraFrame(CameraImage image) async {
-    if (_isProcessingFrame) return;
+    final now = DateTime.now();
+    if (now.difference(_lastFrameTime).inMilliseconds < _minFrameIntervalMs) {
+      return; // Skip frame to avoid saturating ML thread pool
+    }
+
+    if (_isProcessingFrame || !mounted) return;
+    if (_cameraController == null || !_isCameraInitialized) return;
     if (ref.read(scannerProvider).isAnalyzing) return;
+    if (ref.read(scannerProvider).mode != ScannerMode.barcode) return;
+
     _isProcessingFrame = true;
+    _lastFrameTime = now;
 
     try {
       final WriteBuffer allBytes = WriteBuffer();
@@ -116,12 +212,16 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
         allBytes.putUint8List(plane.bytes);
       }
 
+      if (_cameras.isEmpty || _selectedCameraIdx >= _cameras.length) return;
       final camera = _cameras[_selectedCameraIdx];
+      final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
+          InputImageRotation.rotation0deg;
+
       final inputImage = InputImage.fromBytes(
         bytes: allBytes.done().buffer.asUint8List(),
         metadata: InputImageMetadata(
           size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg,
+          rotation: rotation,
           format: Platform.isAndroid
               ? InputImageFormat.nv21
               : InputImageFormat.bgra8888,
@@ -131,22 +231,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
 
       final barcodes = await _barcodeScanner.processImage(inputImage);
 
-      if (barcodes.isNotEmpty && mounted) {
+      if (barcodes.isNotEmpty && mounted && ref.read(scannerProvider).mode == ScannerMode.barcode) {
         final code = barcodes.first.rawValue;
-        if (code != null && code != _lastDetectedBarcode) {
-          _lastDetectedBarcode = code;
+        if (code != null && code.trim().isNotEmpty && code.trim() != _lastDetectedBarcode) {
+          _lastDetectedBarcode = code.trim();
           HapticFeedback.mediumImpact();
-          // Capture a still image so we can use AI Vision if barcode not in DB
-          try {
-            final XFile still = await _cameraController!.takePicture();
-            ref.read(scannerProvider.notifier).analyzeBarcode(
-                  code,
-                  imagePath: still.path,
-                );
-          } catch (_) {
-            // If still capture fails, just do barcode lookup only
-            ref.read(scannerProvider.notifier).analyzeBarcode(code);
-          }
+
+          // Safely analyze barcode with priority local database matching
+          ref.read(scannerProvider.notifier).analyzeBarcode(code.trim());
         }
       }
     } catch (e) {
@@ -161,6 +253,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     if (_cameraController == null || !_isCameraInitialized) return;
     if (_cameraController!.value.isTakingPicture) return;
     if (ref.read(scannerProvider).isAnalyzing) return;
+
+    // Stop any stream before capture
+    await _stopStreamSafely();
 
     try {
       HapticFeedback.mediumImpact();
@@ -190,6 +285,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopStreamSafely();
     _cameraController?.dispose();
     _scanLineCtrl.dispose();
     _barcodeScanner.close();
@@ -202,7 +299,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
 
     if (next.result != null && prev?.result != next.result) {
       _lastDetectedBarcode = null;
-      context.push('/result', extra: next.result);
+      context.push('/result/${next.result!.id}', extra: next.result);
       Future.microtask(() => ref.read(scannerProvider.notifier).reset());
       return;
     }
@@ -265,7 +362,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                     final item = BarcodeLookupService.createManualItem(
                         barcode: barcode, categoryId: cat.id, name: 'Scanned Product');
                     Navigator.of(ctx).pop();
-                    context.push('/result', extra: item);
+                    context.push('/result/${item.id}', extra: item);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -325,15 +422,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── 1. Camera Preview (with live barcode stream in barcode mode) ──
+          // ── 1. Camera Preview ──
           SizedBox.expand(
             child: _isCameraInitialized && _cameraController != null
-                ? isBarcodeMode
-                    ? _LiveBarcodePreview(
-                        controller: _cameraController!,
-                        onFrameAvailable: _processCameraFrame,
-                      )
-                    : CameraPreview(_cameraController!)
+                ? CameraPreview(_cameraController!)
                 : Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
@@ -442,28 +534,35 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                           _ModePill(
                             title: '🤖 AI Vision',
                             isActive: !isBarcodeMode,
-                            onTap: () => ref
-                                .read(scannerProvider.notifier)
-                                .setMode(ScannerMode.aiVision),
+                            onTap: () async {
+                              ref
+                                  .read(scannerProvider.notifier)
+                                  .setMode(ScannerMode.aiVision);
+                              await _stopStreamSafely();
+                            },
                           ),
                           _ModePill(
                             title: '📷 Barcode',
                             isActive: isBarcodeMode,
-                            onTap: () {
+                            onTap: () async {
                               ref
                                   .read(scannerProvider.notifier)
                                   .setMode(ScannerMode.barcode);
                               _lastDetectedBarcode = null;
+                              await _startStreamSafely();
                             },
                           ),
                         ],
                       ),
                     ),
-                    _CircleButton(
-                      icon: isTorchOn ? Icons.flash_on : Icons.flash_off,
-                      color: isTorchOn ? AppColors.amber : null,
-                      onTap: _toggleFlash,
-                    ),
+                    if (!_isFrontCamera)
+                      _CircleButton(
+                        icon: isTorchOn ? Icons.flash_on : Icons.flash_off,
+                        color: isTorchOn ? AppColors.amber : null,
+                        onTap: _toggleFlash,
+                      )
+                    else
+                      const SizedBox(width: 44),
                   ],
                 ),
               ),
@@ -573,7 +672,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         ),
                       ),
 
-                      // Flip
+                      // Flip Camera
                       IconButton(
                         onPressed: _toggleCamera,
                         icon: const Icon(Icons.flip_camera_ios_rounded,
@@ -678,47 +777,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       bracket(top: false, left: false),
     ];
   }
-}
-
-// ── Live barcode preview widget (streams frames to MLKit) ──
-class _LiveBarcodePreview extends StatefulWidget {
-  final CameraController controller;
-  final Future<void> Function(CameraImage) onFrameAvailable;
-
-  const _LiveBarcodePreview(
-      {required this.controller, required this.onFrameAvailable});
-
-  @override
-  State<_LiveBarcodePreview> createState() => _LiveBarcodePreviewState();
-}
-
-class _LiveBarcodePreviewState extends State<_LiveBarcodePreview> {
-  bool _streaming = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startStream();
-  }
-
-  Future<void> _startStream() async {
-    if (_streaming) return;
-    try {
-      await widget.controller.startImageStream(widget.onFrameAvailable);
-      _streaming = true;
-    } catch (_) {}
-  }
-
-  @override
-  void dispose() {
-    if (_streaming) {
-      widget.controller.stopImageStream().catchError((_) {});
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => CameraPreview(widget.controller);
 }
 
 // ─────────────── Painters / Helpers ───────────────
@@ -861,3 +919,4 @@ class _SampleChip extends StatelessWidget {
         ),
       );
 }
+

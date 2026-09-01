@@ -10,33 +10,113 @@ import 'package:recyclescan/core/models/recycling_category.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/providers/bag_provider.dart';
 import 'package:recyclescan/core/providers/scan_history_provider.dart';
+import 'package:recyclescan/core/services/hive_service.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
-  final ScanItem item;
+  final ScanItem? item;
+  final String? itemId;
 
-  const ResultScreen({super.key, required this.item});
+  const ResultScreen({super.key, this.item, this.itemId});
 
   @override
   ConsumerState<ResultScreen> createState() => _ResultScreenState();
 }
 
 class _ResultScreenState extends ConsumerState<ResultScreen> {
+  ScanItem? _resolvedItem;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(scanHistoryProvider.notifier).addItem(widget.item);
-    });
+    _resolvedItem = widget.item;
+    if (_resolvedItem == null && widget.itemId != null) {
+      _resolvedItem = HiveService.getScanItemById(widget.itemId!);
+    }
+    if (_resolvedItem != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _resolvedItem != null) {
+          ref.read(scanHistoryProvider.notifier).addItem(_resolvedItem!);
+        }
+      });
+    }
   }
 
-  RecyclingCategory? get _category =>
-      RecyclingData.categoriesMap[widget.item.categoryId];
+  RecyclingCategory? get _category {
+    final it = _resolvedItem;
+    if (it == null) return null;
+    return RecyclingData.categoriesMap[it.categoryId];
+  }
 
-  bool get _isRecyclable => widget.item.categoryId.toLowerCase() != 'general';
+  bool get _isRecyclable {
+    final it = _resolvedItem;
+    if (it == null) return false;
+    return it.categoryId.toLowerCase() != 'general';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final item = _resolvedItem;
+    if (item == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Result', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.search_off_rounded, size: 72, color: AppColors.textLight),
+                const SizedBox(height: 16),
+                const Text(
+                  'Item Not Found',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The requested scan item could not be retrieved or was deleted from history.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => context.go('/scanner'),
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  label: const Text('Scan an Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryGreen,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => context.go('/home'),
+                  child: const Text('Return Home', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final category = _category;
     if (category == null) {
       return Scaffold(
@@ -45,7 +125,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       );
     }
 
-    final isInBag = ref.watch(bagProvider).any((i) => i.id == widget.item.id);
+    final isInBag = ref.watch(bagProvider).any((i) => i.id == item.id);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -73,7 +153,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 1. Image Section
-            _buildImageSection(category).animate().fadeIn(delay: 50.ms).slideY(begin: 0.1),
+            _buildImageSection(category, item).animate().fadeIn(delay: 50.ms).slideY(begin: 0.1),
             const SizedBox(height: 24),
             
             // 2. Main Result Card
@@ -89,7 +169,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             const SizedBox(height: 24),
 
             // 5. Bag Button
-            _buildBagButton(isInBag).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
+            _buildBagButton(isInBag, item).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
             const SizedBox(height: 24),
 
             // 6. Bottom Actions
@@ -101,7 +181,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     );
   }
 
-  Widget _buildImageSection(RecyclingCategory category) {
+  Widget _buildImageSection(RecyclingCategory category, ScanItem item) {
     return Column(
       children: [
         Container(
@@ -110,9 +190,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: category.lightColor,
-            image: widget.item.localImagePath != null
+            image: item.localImagePath != null
                 ? DecorationImage(
-                    image: FileImage(File(widget.item.localImagePath!)),
+                    image: FileImage(File(item.localImagePath!)),
                     fit: BoxFit.cover,
                   )
                 : null,
@@ -124,7 +204,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
               ),
             ],
           ),
-          child: widget.item.localImagePath == null
+          child: item.localImagePath == null
               ? Icon(Icons.inventory_2_outlined, size: 60, color: category.color)
               : null,
         ),
@@ -154,7 +234,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          widget.item.name,
+          item.name,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 26,
@@ -162,10 +242,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             color: Colors.black87,
           ),
         ),
-        if (widget.item.brand != null) ...[
+        if (item.brand != null) ...[
           const SizedBox(height: 4),
           Text(
-            widget.item.brand!,
+            item.brand!,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 16,
@@ -347,12 +427,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     );
   }
 
-  Widget _buildBagButton(bool isInBag) {
+  Widget _buildBagButton(bool isInBag, ScanItem item) {
     return ElevatedButton(
       onPressed: () {
         HapticFeedback.mediumImpact();
         if (!isInBag) {
-          ref.read(bagProvider.notifier).addItem(widget.item);
+          ref.read(bagProvider.notifier).addItem(item);
         }
       },
       style: ElevatedButton.styleFrom(

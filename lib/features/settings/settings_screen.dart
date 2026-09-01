@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
 import 'package:recyclescan/core/providers/scan_history_provider.dart';
+import 'package:recyclescan/core/services/secure_storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -38,8 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _showApiKeyDialog() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentKey = prefs.getString('gemini_api_key') ?? '';
+    final currentKey = await SecureStorageService.getApiKey();
     final controller = TextEditingController(text: currentKey);
 
     if (!mounted) return;
@@ -63,10 +63,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
         actions: [
+          if (currentKey.isNotEmpty)
+            TextButton(
+              onPressed: () async {
+                await SecureStorageService.deleteApiKey();
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Remove', style: TextStyle(color: AppColors.error)),
+            ),
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              await prefs.setString('gemini_api_key', controller.text.trim());
+              await SecureStorageService.saveApiKey(controller.text.trim());
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen),
@@ -209,6 +217,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       activeTrackColor: AppColors.primaryGreen,
                     ),
                   ).animate().fadeIn(delay: 150.ms),
+
+                  const SizedBox(height: 10),
+
+                  _SettingsTile(
+                    icon: Icons.key_rounded,
+                    iconColor: AppColors.primaryGreen,
+                    title: 'Gemini API Key',
+                    subtitle: 'Configure AI Vision API key for cloud recognition',
+                    onTap: _showApiKeyDialog,
+                  ).animate().fadeIn(delay: 180.ms),
 
                   const SizedBox(height: 24),
 

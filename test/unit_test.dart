@@ -40,6 +40,19 @@ void main() {
   });
 
   group('BarcodeLookupService tests', () {
+    test('normalizeBarcode cleans whitespace and non-alphanumerics', () {
+      expect(BarcodeLookupService.normalizeBarcode(' 5000112637939 \n'), equals('5000112637939'));
+      expect(BarcodeLookupService.normalizeBarcode('0-49000-02892-8'), equals('049000028928'));
+      expect(BarcodeLookupService.normalizeBarcode(' 123 456 789 '), equals('123456789'));
+    });
+
+    test('getBarcodeVariants produces appropriate digit variations', () {
+      final variants = BarcodeLookupService.getBarcodeVariants('0049000028928');
+      expect(variants.contains('0049000028928'), isTrue);
+      expect(variants.contains('49000028928'), isTrue);
+      expect(variants.contains('049000028928'), isTrue);
+    });
+
     test('Look up existing barcode returns valid ScanItem', () {
       const barcode = '5000112637939'; // Coca-Cola 500ml
       final item = BarcodeLookupService.lookupBarcode(barcode);
@@ -49,6 +62,21 @@ void main() {
       expect(item.name, equals('Coca-Cola 500ml Bottle'));
       expect(item.categoryId, equals('plastic'));
       expect(item.brand, equals('Coca-Cola'));
+    });
+
+    test('Look up barcode with stripped leading zeros matches database', () {
+      // Database has '0049000028928' (Sprite 20oz Bottle)
+      final item1 = BarcodeLookupService.lookupBarcode('49000028928');
+      expect(item1, isNotNull);
+      expect(item1!.name, equals('Sprite 20oz Bottle'));
+
+      final item2 = BarcodeLookupService.lookupBarcode('049000028928');
+      expect(item2, isNotNull);
+      expect(item2!.name, equals('Sprite 20oz Bottle'));
+
+      final item3 = BarcodeLookupService.lookupBarcode('  0049000028928  ');
+      expect(item3, isNotNull);
+      expect(item3!.name, equals('Sprite 20oz Bottle'));
     });
 
     test('Look up unknown barcode returns null', () {
@@ -68,6 +96,43 @@ void main() {
       expect(item.barcode, equals('1234567890'));
       expect(item.categoryId, equals('glass'));
       expect(item.imageEmoji, equals('🍾'));
+    });
+
+    test('Look up items across expanded product database categories', () {
+      // Plastic
+      final coke = BarcodeLookupService.lookupBarcode('5000112637939');
+      expect(coke, isNotNull);
+      expect(coke!.categoryId, equals('plastic'));
+
+      // Metal
+      final heinekenCan = BarcodeLookupService.lookupBarcode('5411188051558');
+      expect(heinekenCan, isNotNull);
+      expect(heinekenCan!.categoryId, equals('metal'));
+
+      // Glass
+      final nutella = BarcodeLookupService.lookupBarcode('3017620422003');
+      expect(nutella, isNotNull);
+      expect(nutella!.categoryId, equals('glass'));
+
+      // Paper
+      final kelloggs = BarcodeLookupService.lookupBarcode('5000112476431');
+      expect(kelloggs, isNotNull);
+      expect(kelloggs!.categoryId, equals('paper'));
+
+      // E-Waste
+      final appleCharger = BarcodeLookupService.lookupBarcode('0194252764756');
+      expect(appleCharger, isNotNull);
+      expect(appleCharger!.categoryId, equals('ewaste'));
+
+      // Organic
+      final apples = BarcodeLookupService.lookupBarcode('5000080020027');
+      expect(apples, isNotNull);
+      expect(apples!.categoryId, equals('organic'));
+
+      // General
+      final oreo = BarcodeLookupService.lookupBarcode('7622300489434');
+      expect(oreo, isNotNull);
+      expect(oreo!.categoryId, equals('general'));
     });
 
     test('getCategoryForItem returns correct category', () {

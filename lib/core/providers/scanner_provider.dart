@@ -5,8 +5,8 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/services/barcode_lookup_service.dart';
 import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
+import 'package:recyclescan/core/services/secure_storage_service.dart';
 
 enum ScannerMode { aiVision, barcode }
 
@@ -69,12 +69,7 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
   }
 
   Future<String> _loadApiKey() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString('gemini_api_key') ?? '';
-      if (saved.isNotEmpty) return saved;
-    } catch (_) {}
-    return const String.fromEnvironment('AI_VISION_API_KEY');
+    return await SecureStorageService.getApiKey();
   }
 
   /// Returns true if Gemini succeeded and state was updated.
@@ -82,23 +77,27 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
     try {
       final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
       final prompt = TextPart('''
-Analyze the image. Identify the primary object accurately (laptop, apple, plastic bottle, spoon, etc).
-Return ONLY valid JSON – no markdown, no explanation:
+You are an expert recycling and computer vision assistant for RecycleScan.
+Carefully inspect the image to identify the PRIMARY FOREGROUND SUBJECT that the user is aiming at (for example: painting, artwork, laptop, smartphone, chair, plastic bottle, aluminum can, apple, cardboard box, glass jar, battery, clothing, etc).
+IMPORTANT: Ignore background walls, floors, or incidental room furniture if there is a specific focal object (e.g. if the user is pointing at a painting, wall art, canvas, or poster, identify the painting/artwork, NOT the chair or table in the room).
+
+Return ONLY valid JSON matching this exact structure:
 {
-  "itemName": "specific object name",
+  "itemName": "Precise name of the object (e.g. Painting / Artwork, Laptop, Plastic Bottle, Aluminum Can)",
   "category": "ONE of: plastic | paper | glass | metal | general | ewaste | organic",
-  "binName": "correct disposal bin name",
-  "isRecyclable": true_or_false,
-  "preparationSummary": "brief disposal/recycling/composting instruction"
+  "binName": "e.g. Paper & Cardboard Recycling Bin",
+  "isRecyclable": true,
+  "preparationSummary": "Clear 1-sentence disposal/recycling guidance"
 }
 Rules:
-- Electronics/devices → ewaste
-- Food/fruit/veg/meat/plants → organic
-- Plastic packaging/bottles → plastic
-- Glass jars/bottles → glass
-- Paper/cardboard → paper
-- Metal cans/cutlery → metal
-- Clothing/furniture (if reusable) → general (note to donate)
+- Paintings/prints/drawings/paper → paper (or general if canvas/frame)
+- Electronics/computers/phones/batteries/cables → ewaste
+- Food/fruits/vegetables/plants/organic → organic
+- Plastic bottles/tubs/containers → plastic
+- Glass bottles/jars → glass
+- Paper/cardboard/books/magazines → paper
+- Metal cans/tins/foil/cutlery → metal
+- Furniture/clothing/mixed-materials → general
 ''');
       final response = await model
           .generateContent([Content.multi([prompt, DataPart('image/jpeg', bytes)])]);
@@ -134,58 +133,46 @@ Rules:
   // ─────────────────────────────────────────────────────────
   Future<void> _runMLKit(String imagePath) async {
     try {
-      // Use higher confidence threshold so it returns more accurate results
-      final options = ImageLabelerOptions(confidenceThreshold: 0.45);
+      final options = ImageLabelerOptions(confidenceThreshold: 0.35);
       final labeler = ImageLabeler(options: options);
       final inputImage = InputImage.fromFilePath(imagePath);
       final labels = await labeler.processImage(inputImage);
       await labeler.close();
 
       if (labels.isEmpty) {
-        // Absolute last resort — smart generic result
-        _emitSmartGeneric();
+        _emitSmartGeneric(imagePath);
         return;
       }
 
-      // Gather all labels for richer matching
-      final allText = labels.map((l) => l.label.toLowerCase()).join(' ');
+      // Sort labels by confidence descending
+      final sortedLabels = List<ImageLabel>.from(labels)
+        ..sort((a, b) => b.confidence.compareTo(a.confidence));
+
+      final allText = sortedLabels.map((l) => l.label.toLowerCase()).join(' ');
       debugPrint('[MLKit] labels: $allText');
 
-      final category = _mlkitCategoryFromLabels(allText);
-      final notes = _notesForCategory(category);
-      
-      const ignoreLabels = {'hand', 'finger', 'arm', 'wall', 'floor', 'room', 'ceiling', 'poster', 'person', 'table', 'desk', 'background', 'indoor', 'outdoor', 'wood', 'glass', 'plastic', 'metal', 'paper'};
-      String selectedLabel = labels.first.label;
-      for (final l in labels) {
-        if (!ignoreLabels.contains(l.label.toLowerCase())) {
-          selectedLabel = l.label;
-          break;
-        }
-      }
-      
-      final bestLabel = _humanLabel(selectedLabel);
+      final recognized = _classifyMLKitLabels(sortedLabels, allText);
 
       state = state.copyWith(
         isAnalyzing: false,
         result: ScanItem(
           id: const Uuid().v4(),
           barcode: 'MLKIT_VISION',
-          name: bestLabel,
+          name: recognized.name,
           brand: 'On-Device AI',
-          categoryId: category,
+          categoryId: recognized.categoryId,
           timestamp: DateTime.now(),
-          notes: notes,
+          notes: recognized.notes,
           localImagePath: imagePath,
         ),
       );
     } catch (e) {
-      debugPrint('[MLKit] $e');
-      // Still show something useful instead of an error
-      _emitSmartGeneric();
+      debugPrint('[MLKit] error: $e');
+      _emitSmartGeneric(imagePath);
     }
   }
 
-  void _emitSmartGeneric() {
+  void _emitSmartGeneric(String? imagePath) {
     state = state.copyWith(
       isAnalyzing: false,
       result: ScanItem(
@@ -195,50 +182,235 @@ Rules:
         brand: 'AI Vision',
         categoryId: 'general',
         timestamp: DateTime.now(),
-        notes: 'Could not identify the object. When in doubt, place in general waste.',
+        notes: 'Could not identify the object with high confidence. When in doubt, place in general waste or check local council guidelines.',
+        localImagePath: imagePath,
       ),
     );
   }
 
-  String _mlkitCategoryFromLabels(String allLabels) {
-    // E-Waste
-    if (_anyOf(allLabels, ['computer', 'laptop', 'phone', 'smartphone', 'tablet',
-        'keyboard', 'television', 'monitor', 'electronic', 'circuit', 'battery',
-        'charger', 'cable', 'camera', 'headphone', 'printer', 'mouse', 'appliance'])) {
-      return 'ewaste';
+  _RecognitionResult _classifyMLKitLabels(List<ImageLabel> sortedLabels, String allText) {
+    // 1. ART & PAINTINGS (High priority so paintings are not confused with background furniture)
+    if (_anyOf(allText, [
+      'painting', 'art', 'visual arts', 'modern art', 'artwork', 'picture frame',
+      'drawing', 'sketch', 'canvas', 'acrylic paint', 'watercolor', 'portrait',
+      'mural', 'illustration', 'poster', 'printmaking', 'paint'
+    ])) {
+      return const _RecognitionResult(
+        name: 'Painting / Artwork',
+        categoryId: 'paper',
+        notes: 'Unframed paper art or prints can be recycled with paper. Framed art or canvas with wood/metal/glass frames should be donated or placed in general waste.',
+      );
     }
-    // Organic
-    if (_anyOf(allLabels, ['fruit', 'vegetable', 'food', 'plant', 'leaf', 'grass',
-        'apple', 'banana', 'orange', 'meat', 'fish', 'flower', 'tree', 'produce',
-        'salad', 'bread', 'mushroom', 'berry', 'pear', 'mango', 'potato', 'pepper', 'snack', 'candy', 'cookie', 'chocolate'])) {
-      return 'organic';
+
+    // 2. ELECTRONICS & E-WASTE
+    if (_anyOf(allText, [
+      'laptop', 'computer', 'personal computer', 'keyboard', 'computer keyboard',
+      'computer mouse', 'mouse', 'smartphone', 'mobile phone', 'phone', 'cellphone',
+      'tablet', 'ipad', 'television', 'tv', 'monitor', 'display', 'screen',
+      'headphone', 'earphone', 'speaker', 'audio equipment', 'camera', 'digital camera',
+      'printer', 'scanner', 'remote control', 'battery', 'charger', 'cable', 'wire',
+      'circuit', 'electronic device', 'appliance', 'microwave', 'toaster', 'blender', 'kettle'
+    ])) {
+      String name = 'Electronic Device';
+      if (_anyOf(allText, ['laptop', 'notebook'])) {
+        name = 'Laptop';
+      } else if (_anyOf(allText, ['smartphone', 'mobile phone', 'cellphone', 'phone'])) {
+        name = 'Smartphone';
+      } else if (_anyOf(allText, ['tablet', 'ipad'])) {
+        name = 'Tablet Device';
+      } else if (_anyOf(allText, ['keyboard'])) {
+        name = 'Computer Keyboard';
+      } else if (_anyOf(allText, ['mouse'])) {
+        name = 'Computer Mouse';
+      } else if (_anyOf(allText, ['television', 'tv', 'monitor', 'display'])) {
+        name = 'Television / Monitor';
+      } else if (_anyOf(allText, ['headphone', 'earphone', 'audio'])) {
+        name = 'Headphones';
+      } else if (_anyOf(allText, ['camera'])) {
+        name = 'Camera';
+      } else if (_anyOf(allText, ['printer', 'scanner'])) {
+        name = 'Printer';
+      } else if (_anyOf(allText, ['battery'])) {
+        name = 'Battery (Hazardous E-Waste)';
+      } else if (_anyOf(allText, ['charger', 'cable', 'wire'])) {
+        name = 'Charging Cable / Adapter';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'ewaste',
+        notes: _notesForCategory('ewaste'),
+      );
     }
-    // Glass
-    if (_anyOf(allLabels, ['glass', 'jar', 'wine', 'beer', 'perfume'])) {
-      if (!allLabels.contains('plastic') && !allLabels.contains('water bottle') && !allLabels.contains('screen')) {
-        return 'glass';
+
+    // 3. ORGANIC / FOOD / PRODUCE
+    if (_anyOf(allText, [
+      'fruit', 'apple', 'banana', 'orange', 'citrus', 'vegetable', 'tomato',
+      'potato', 'carrot', 'onion', 'pepper', 'berry', 'strawberry', 'grape',
+      'produce', 'salad', 'bread', 'bakery', 'meat', 'fish', 'plant', 'leaf',
+      'flower', 'tree', 'grass', 'coffee', 'tea', 'food', 'snack', 'mushroom',
+      'avocado', 'watermelon', 'melon', 'pear', 'mango', 'peach', 'lemon'
+    ])) {
+      String name = 'Organic / Food Scrap';
+      if (_anyOf(allText, ['apple'])) {
+        name = 'Apple';
+      } else if (_anyOf(allText, ['banana'])) {
+        name = 'Banana';
+      } else if (_anyOf(allText, ['orange', 'citrus'])) {
+        name = 'Orange / Citrus';
+      } else if (_anyOf(allText, ['fruit', 'berry'])) {
+        name = 'Fresh Fruit';
+      } else if (_anyOf(allText, ['vegetable', 'salad'])) {
+        name = 'Vegetable';
+      } else if (_anyOf(allText, ['plant', 'flower', 'leaf', 'tree'])) {
+        name = 'Plant / Garden Organic';
+      } else if (_anyOf(allText, ['bread', 'bakery'])) {
+        name = 'Bread / Bakery Scrap';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'organic',
+        notes: _notesForCategory('organic'),
+      );
+    }
+
+    // 4. GLASS (Bottles & Jars)
+    if (_anyOf(allText, [
+      'wine bottle', 'beer bottle', 'glass bottle', 'mason jar', 'jar',
+      'wine glass', 'drinking glass', 'perfume bottle', 'goblet'
+    ]) || (allText.contains('glass') && !allText.contains('plastic') && !allText.contains('screen'))) {
+      String name = 'Glass Bottle / Jar';
+      if (_anyOf(allText, ['wine bottle'])) {
+        name = 'Wine Bottle';
+      } else if (_anyOf(allText, ['beer bottle'])) {
+        name = 'Beer Bottle';
+      } else if (_anyOf(allText, ['jar', 'mason jar'])) {
+        name = 'Glass Jar';
+      } else if (_anyOf(allText, ['glass bottle'])) {
+        name = 'Glass Bottle';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'glass',
+        notes: _notesForCategory('glass'),
+      );
+    }
+
+    // 5. METAL (Cans, Foil, Tins, Cutlery)
+    if (_anyOf(allText, [
+      'can', 'aluminum can', 'tin can', 'beverage can', 'tin', 'aluminium',
+      'aluminum', 'steel', 'spoon', 'fork', 'knife', 'cutlery', 'utensil',
+      'foil', 'aluminum foil', 'pan', 'pot', 'aerosol'
+    ])) {
+      String name = 'Metal Item';
+      if (_anyOf(allText, ['aluminum can', 'beverage can', 'can'])) {
+        name = 'Aluminum Can';
+      } else if (_anyOf(allText, ['tin can', 'tin'])) {
+        name = 'Food Tin / Can';
+      } else if (_anyOf(allText, ['cutlery', 'spoon', 'fork', 'knife'])) {
+        name = 'Metal Cutlery';
+      } else if (_anyOf(allText, ['foil'])) {
+        name = 'Aluminum Foil';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'metal',
+        notes: _notesForCategory('metal'),
+      );
+    }
+
+    // 6. PLASTIC (Bottles, Jugs, Packaging)
+    if (_anyOf(allText, [
+      'water bottle', 'plastic bottle', 'bottle', 'jug', 'tub', 'plastic container',
+      'plastic bag', 'wrapper', 'packaging', 'polystyrene', 'foam', 'plastic cup',
+      'lid', 'shampoo', 'lotion', 'detergent', 'plastic'
+    ])) {
+      String name = 'Plastic Container';
+      if (_anyOf(allText, ['water bottle', 'plastic bottle', 'bottle'])) {
+        name = 'Plastic Bottle';
+      } else if (_anyOf(allText, ['plastic bag', 'wrapper', 'packaging'])) {
+        name = 'Plastic Packaging';
+      } else if (_anyOf(allText, ['shampoo', 'lotion', 'detergent'])) {
+        name = 'Plastic Bottle (Toiletry/Cleaner)';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'plastic',
+        notes: _notesForCategory('plastic'),
+      );
+    }
+
+    // 7. PAPER & CARDBOARD (Boxes, Books, Stationery)
+    if (_anyOf(allText, [
+      'cardboard', 'cardboard box', 'box', 'carton', 'book', 'publication',
+      'newspaper', 'magazine', 'notebook', 'document', 'envelope', 'receipt',
+      'paper bag', 'tissue', 'stationery', 'paper'
+    ])) {
+      String name = 'Paper / Cardboard';
+      if (_anyOf(allText, ['cardboard', 'box', 'carton'])) {
+        name = 'Cardboard Box';
+      } else if (_anyOf(allText, ['book', 'publication'])) {
+        name = 'Book';
+      } else if (_anyOf(allText, ['newspaper', 'magazine'])) {
+        name = 'Newspaper / Magazine';
+      } else if (_anyOf(allText, ['notebook', 'document', 'stationery'])) {
+        name = 'Paper Document / Notebook';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'paper',
+        notes: _notesForCategory('paper'),
+      );
+    }
+
+    // 8. FURNITURE & TEXTILES (General Waste / Reuse)
+    if (_anyOf(allText, [
+      'chair', 'table', 'desk', 'couch', 'sofa', 'bed', 'wardrobe', 'cabinet',
+      'rug', 'carpet', 'pillow', 'clothing', 'shirt', 'pants', 'shoe', 'shoes',
+      'footwear', 'textile', 'bag', 'backpack', 'toy', 'furniture'
+    ])) {
+      String name = 'Household Item / Furniture';
+      if (_anyOf(allText, ['chair'])) {
+        name = 'Chair';
+      } else if (_anyOf(allText, ['table', 'desk'])) {
+        name = 'Table / Desk';
+      } else if (_anyOf(allText, ['clothing', 'shirt', 'pants', 'shoe', 'textile'])) {
+        name = 'Clothing / Textile';
+      }
+
+      return _RecognitionResult(
+        name: name,
+        categoryId: 'general',
+        notes: 'Consider donating or selling if in reusable condition. Otherwise, dispose of as general household waste or bulky council collection.',
+      );
+    }
+
+    // Fallback using first clean non-generic label
+    const ignoreLabels = {
+      'room', 'indoor', 'outdoor', 'wall', 'floor', 'flooring', 'ceiling',
+      'lighting', 'light', 'interior design', 'shadow', 'snapshot', 'photography',
+      'comfort', 'hand', 'finger', 'arm', 'person', 'body', 'wood', 'surface', 'material'
+    };
+
+
+    String selectedLabel = 'Unrecognised Item';
+    for (final l in sortedLabels) {
+      if (!ignoreLabels.contains(l.label.toLowerCase())) {
+        selectedLabel = l.label;
+        break;
       }
     }
-    // Plastic
-    if (_anyOf(allLabels, ['plastic', 'water bottle', 'jug', 'container', 'bag',
-        'packaging', 'wrapper', 'polystyrene', 'foam', 'bottle', 'cup', 'lid'])) {
-      return 'plastic';
-    }
-    // Paper
-    if (_anyOf(allLabels, ['paper', 'cardboard', 'box', 'book', 'newspaper',
-        'document', 'magazine', 'envelope', 'notebook', 'carton', 'receipt', 'ticket'])) {
-      return 'paper';
-    }
-    // Metal
-    if (_anyOf(allLabels, ['metal', 'can', 'tin', 'aluminium', 'aluminum', 'steel',
-        'spoon', 'fork', 'knife', 'cutlery', 'utensil', 'iron', 'copper', 'silver', 'foil', 'brass'])) {
-      return 'metal';
-    }
-    // Clothing / Textiles (General)
-    if (_anyOf(allLabels, ['clothing', 'shirt', 'pants', 'shoe', 'fabric', 'textile', 'bag', 'backpack'])) {
-      return 'general';
-    }
-    return 'general';
+
+    return _RecognitionResult(
+      name: _humanLabel(selectedLabel),
+      categoryId: 'general',
+      notes: 'This item may not be standard recyclable waste. Check local council guidelines or dispose in general waste.',
+    );
   }
 
   bool _anyOf(String text, List<String> keywords) =>
@@ -264,7 +436,6 @@ Rules:
   }
 
   String _humanLabel(String rawLabel) {
-    // MLKit returns labels like "Laptop computer" — just capitalise properly
     return rawLabel
         .split(' ')
         .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
@@ -275,7 +446,6 @@ Rules:
     const valid = {'plastic', 'paper', 'glass', 'metal', 'general', 'ewaste', 'organic'};
     final lower = raw.toLowerCase().trim();
     if (valid.contains(lower)) return lower;
-    // Try common aliases
     if (lower.contains('electronic') || lower.contains('e-waste')) return 'ewaste';
     if (lower.contains('organic') || lower.contains('food')) return 'organic';
     if (lower.contains('plastic')) return 'plastic';
@@ -377,3 +547,15 @@ Rules:
 
 final scannerProvider =
     StateNotifierProvider<ScannerNotifier, ScannerState>((ref) => ScannerNotifier());
+
+class _RecognitionResult {
+  final String name;
+  final String categoryId;
+  final String notes;
+
+  const _RecognitionResult({
+    required this.name,
+    required this.categoryId,
+    required this.notes,
+  });
+}

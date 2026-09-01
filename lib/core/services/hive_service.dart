@@ -57,6 +57,18 @@ class HiveService {
     return items;
   }
 
+  static ScanItem? getScanItemById(String id) {
+    if (Hive.isBoxOpen(scanHistoryBox)) {
+      final item = scanHistory.get(id);
+      if (item != null) return item;
+    }
+    if (Hive.isBoxOpen(recyclingBagBox)) {
+      final item = recyclingBag.get(id);
+      if (item != null) return item;
+    }
+    return null;
+  }
+
   static bool containsBarcode(String barcode) {
     if (!Hive.isBoxOpen(scanHistoryBox)) return false;
     return scanHistory.values.any((item) => item.barcode == barcode);

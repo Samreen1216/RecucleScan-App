@@ -25,8 +25,11 @@ class BagScreen extends ConsumerWidget {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                if (context.canPop()) context.pop();
-                else context.go('/home');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
               },
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -64,7 +67,7 @@ class BagScreen extends ConsumerWidget {
                             Text(
                               '${items.length} item${items.length == 1 ? "" : "s"} in bag',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 13,
                               ),
                             ),
@@ -119,9 +122,9 @@ class BagScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
+                    Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.5)),
                     const SizedBox(height: 16),
-                    Text(
+                    const Text(
                       'Your recycling bag is empty',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                     ),
@@ -139,7 +142,7 @@ class BagScreen extends ConsumerWidget {
                     final category = RecyclingData.categoriesMap[item.categoryId];
                     
                     return Dismissible(
-                      key: Key('${item.id}'),
+                      key: Key(item.id),
                       direction: DismissDirection.endToStart,
                       onDismissed: (_) {
                         ref.read(bagProvider.notifier).removeItem(item.id);
@@ -159,10 +162,10 @@ class BagScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.mintGreen.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.mintGreen.withValues(alpha: 0.3)),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryGreen.withOpacity(0.04),
+                              color: AppColors.primaryGreen.withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
