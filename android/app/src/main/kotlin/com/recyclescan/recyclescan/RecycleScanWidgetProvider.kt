@@ -101,6 +101,7 @@ abstract class RecycleScanWidgetProvider : AppWidgetProvider() {
             }
 
             // Click Handlers for CTAs
+            try { views.setOnClickPendingIntent(R.id.btn_scan, getPendingIntent("/scanner")) } catch (t: Throwable) {}
             try { views.setOnClickPendingIntent(R.id.btn_history, getPendingIntent("/history")) } catch (t: Throwable) {}
             try { views.setOnClickPendingIntent(R.id.view_recent_scan_0, getPendingIntent("/history")) } catch (t: Throwable) {}
 

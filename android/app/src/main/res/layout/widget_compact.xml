@@ -23,22 +23,19 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_leaf" />
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@mipmap/launcher_icon" />
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="6dp"
                     android:text="RecycleScan"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF" />
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_more" />
+                    android:textColor="#FFFFFF"
+                    android:singleLine="true"
+                    android:maxLines="1" />
             </LinearLayout>
             
             <!-- Center Stat Content -->
@@ -50,12 +47,12 @@
                 android:gravity="center_vertical">
                 
                 <FrameLayout
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:background="@drawable/widget_circle_leaf_bg">
                     <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_widget_leaf" />
                 </FrameLayout>
@@ -71,31 +68,51 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="You\'ve recycled"
-                        android:textSize="10sp"
-                        android:textColor="#C8E6C9" />
+                        android:textSize="9sp"
+                        android:textColor="#C8E6C9"
+                        android:singleLine="true" />
                         
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/tv_items_this_week"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="bottom">
-                        <TextView
-                            android:id="@+id/tv_items_this_week"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="12 items"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="#FFFFFF" />
-                    </LinearLayout>
+                        android:text="12 items"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:singleLine="true" />
                     
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="This week"
-                        android:textSize="10sp"
-                        android:textColor="#A7F3D0" />
+                        android:textSize="9sp"
+                        android:textColor="#A7F3D0"
+                        android:singleLine="true" />
                 </LinearLayout>
+            </LinearLayout>
+
+            <!-- Scan Button -->
+            <LinearLayout
+                android:id="@+id/btn_scan"
+                android:layout_width="match_parent"
+                android:layout_height="26dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/widget_button_primary"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:src="@drawable/ic_widget_scan" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="Scan"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- Bottom Navigation Bar -->
@@ -163,22 +180,19 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_leaf" />
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@mipmap/launcher_icon" />
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="6dp"
                     android:text="RecycleScan"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="#1F2937" />
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_more_dark" />
+                    android:textColor="#1F2937"
+                    android:singleLine="true"
+                    android:maxLines="1" />
             </LinearLayout>
             
             <!-- Center Tip Content -->
@@ -293,22 +307,19 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
                 <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_leaf" />
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@mipmap/launcher_icon" />
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="6dp"
                     android:text="RecycleScan"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="#1F2937" />
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_widget_more_dark" />
+                    android:textColor="#1F2937"
+                    android:singleLine="true"
+                    android:maxLines="1" />
             </LinearLayout>
             
             <TextView

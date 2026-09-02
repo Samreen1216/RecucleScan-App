@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
@@ -30,10 +30,20 @@ class _RecycleScanAppState extends ConsumerState<RecycleScanApp> {
 
   void _handleWidgetClick(Uri? uri) {
     if (uri != null) {
-      final route = uri.path; // e.g. /scanner
+      String route = uri.path;
+      if (route.isEmpty && uri.host.isNotEmpty) {
+        route = '/${uri.host}';
+      }
       if (route.isNotEmpty) {
-        final router = ref.read(appRouterProvider);
-        router.push(route);
+        if (!route.startsWith('/')) {
+          route = '/$route';
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final router = ref.read(appRouterProvider);
+          final currentPath = router.routerDelegate.currentConfiguration.uri.path;
+          if (currentPath == route) return;
+          router.push(route);
+        });
       }
     }
   }

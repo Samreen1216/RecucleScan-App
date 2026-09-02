@@ -403,6 +403,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     );
   }
 
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(scannerProvider);
@@ -418,10 +426,16 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     final isTorchOn = flashMode == FlashMode.torch;
     final isBarcodeMode = state.mode == ScannerMode.barcode;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
           // ── 1. Camera Preview ──
           SizedBox.expand(
             child: _isCameraInitialized && _cameraController != null
@@ -521,7 +535,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _CircleButton(
-                        icon: Icons.arrow_back_rounded, onTap: () => context.pop()),
+                        icon: Icons.arrow_back_rounded, onTap: _handleBack),
                     // Mode pill
                     Container(
                       decoration: BoxDecoration(
@@ -736,8 +750,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Widget> _buildCorners(double boxLeft, double boxTop, double boxSize) {
     const cLen = 26.0;

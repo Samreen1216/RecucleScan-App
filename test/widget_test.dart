@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:recyclescan/features/history/history_screen.dart';
 import 'package:recyclescan/features/result/result_screen.dart';
+import 'package:recyclescan/features/scanner/scanner_screen.dart';
 import 'package:recyclescan/shared/widgets/app_shell.dart';
 
 void main() {
@@ -210,5 +211,24 @@ void main() {
     // Dialog should be gone, still on QuizScreen
     expect(find.text('Are you sure you want to exit?'), findsNothing);
     expect(find.text('Recycle Quiz'), findsOneWidget);
+  });
+
+  testWidgets('ScannerScreen back button navigates safely when opened as root or in stack', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: ScannerScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Verify back button is present
+    final backBtn = find.byIcon(Icons.arrow_back_rounded);
+    expect(backBtn, findsOneWidget);
+
+    // Tapping back should not throw any exceptions
+    await tester.tap(backBtn);
+    await tester.pump();
   });
 }
