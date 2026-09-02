@@ -80,10 +80,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/quiz-result',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          final extra = state.extra is Map<String, dynamic>
+              ? state.extra as Map<String, dynamic>
+              : null;
+          final score = extra?['score'] as int? ?? 0;
+          final total = extra?['total'] as int? ?? 5;
           return QuizResultScreen(
-            score: extra['score'] as int,
-            total: extra['total'] as int,
+            score: score,
+            total: total,
           );
         },
       ),

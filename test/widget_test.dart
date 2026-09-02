@@ -97,4 +97,118 @@ void main() {
     await tester.pump();
     expect(find.byIcon(Icons.clear), findsNothing);
   });
+
+  testWidgets('QuizScreen renders question, selects option, and shows Next Question button', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recycle Quiz'), findsOneWidget);
+    expect(find.textContaining('1 / 5'), findsOneWidget);
+
+    // Tap the first option
+    final firstOption = find.byType(InkWell).first;
+    await tester.tap(firstOption);
+    await tester.pumpAndSettle();
+
+    // Next question button should be visible
+    expect(find.text('NEXT QUESTION'), findsOneWidget);
+  });
+
+  testWidgets('QuizResultScreen renders 0/5 score with supportive message and no celebration', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizResultScreen(score: 0, total: 5),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quiz Results'), findsOneWidget);
+    expect(find.text('0 / 5'), findsOneWidget);
+    expect(find.text('Oops! Better Luck Next Time'), findsOneWidget);
+    expect(find.text('Don’t worry — keep learning and try the quiz again!'), findsOneWidget);
+    expect(find.text('TRY ANOTHER QUIZ'), findsOneWidget);
+    expect(find.text('BACK TO HOME'), findsOneWidget);
+  });
+
+  testWidgets('QuizResultScreen renders 2/5 score with encouraging message', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizResultScreen(score: 2, total: 5),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 / 5'), findsOneWidget);
+    expect(find.text('Keep Learning! 🌱'), findsOneWidget);
+  });
+
+  testWidgets('QuizResultScreen renders 4/5 score with Great Job', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizResultScreen(score: 4, total: 5),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('4 / 5'), findsOneWidget);
+    expect(find.text('Great Job! 🌿'), findsOneWidget);
+  });
+
+  testWidgets('QuizResultScreen renders 5/5 score with Perfect Score badge', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizResultScreen(score: 5, total: 5),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('5 / 5'), findsOneWidget);
+    expect(find.text('Perfect Score! 🏆'), findsOneWidget);
+    expect(find.byIcon(Icons.workspace_premium_rounded), findsOneWidget);
+  });
+
+  testWidgets('QuizScreen back button shows exit confirmation dialog and cancel keeps state', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: QuizScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap back button
+    final backButton = find.byIcon(Icons.arrow_back_rounded);
+    expect(backButton, findsOneWidget);
+    await tester.tap(backButton);
+    await tester.pumpAndSettle();
+
+    // Verification dialog should appear
+    expect(find.text('Are you sure you want to exit?'), findsOneWidget);
+    expect(find.text('Your quiz progress will be lost if you exit now.'), findsOneWidget);
+    expect(find.text('CANCEL'), findsOneWidget);
+    expect(find.text('EXIT'), findsOneWidget);
+
+    // Tap CANCEL
+    await tester.tap(find.text('CANCEL'));
+    await tester.pumpAndSettle();
+
+    // Dialog should be gone, still on QuizScreen
+    expect(find.text('Are you sure you want to exit?'), findsNothing);
+    expect(find.text('Recycle Quiz'), findsOneWidget);
+  });
 }

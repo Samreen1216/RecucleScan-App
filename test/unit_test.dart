@@ -149,4 +149,25 @@ void main() {
       expect(cat!.name, equals('Paper'));
     });
   });
+
+  group('QuizData tests', () {
+    test('QuizData questions pool is rich, valid, and non-empty', () {
+      expect(QuizData.questions.length, greaterThanOrEqualTo(20));
+      for (final q in QuizData.questions) {
+        expect(q.question.isNotEmpty, isTrue);
+        expect(q.options.length, greaterThanOrEqualTo(2));
+        expect(q.correctIndex, greaterThanOrEqualTo(0));
+        expect(q.correctIndex, lessThan(q.options.length));
+        expect(q.explanation.isNotEmpty, isTrue);
+      }
+    });
+
+    test('getRandomQuestions returns unique fresh questions', () {
+      final session1 = QuizData.getRandomQuestions(count: 5);
+      expect(session1.length, equals(5));
+
+      final uniqueQuestions = session1.map((q) => q.question).toSet();
+      expect(uniqueQuestions.length, equals(5));
+    });
+  });
 }

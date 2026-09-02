@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
@@ -27,12 +27,15 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.score == widget.total) {
+      if (widget.score == widget.total && widget.total > 0) {
         setState(() => _badgeEarned = true);
         ref.read(badgeProvider.notifier).earnBadge();
+      }
+      // Play celebratory confetti ONLY for scores >= 3 (no celebration for 0/5 or 1-2/5)
+      if (widget.score >= 3) {
         _confettiController.play();
       }
     });
@@ -44,6 +47,53 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     super.dispose();
   }
 
+  String _getHeadline() {
+    if (widget.score == widget.total && widget.total > 0) return 'Perfect Score! 🏆';
+    if (widget.score >= 3) return 'Great Job! 🌿';
+    if (widget.score > 0) return 'Keep Learning! 🌱';
+    return 'Oops! Better Luck Next Time';
+  }
+
+  String _getFeedbackMessage() {
+    if (widget.score == widget.total && widget.total > 0) {
+      return 'Outstanding! You answered every question correctly and earned the Quiz Master badge!';
+    } else if (widget.score >= 3) {
+      return 'Great effort! You have solid recycling knowledge. Keep sorting and sustaining!';
+    } else if (widget.score > 0) {
+      return 'Good effort! Check out the Recycling Guides in the app to discover more eco-friendly tips.';
+    } else {
+      return 'Don’t worry — keep learning and try the quiz again!';
+    }
+  }
+
+  IconData _getIcon() {
+    if (_badgeEarned) return Icons.workspace_premium_rounded;
+    if (widget.score >= 3) return Icons.eco_rounded;
+    if (widget.score > 0) return Icons.lightbulb_outline_rounded;
+    return Icons.sentiment_neutral_rounded;
+  }
+
+  Color _getIconColor() {
+    if (_badgeEarned) return AppColors.amber;
+    if (widget.score >= 3) return AppColors.primaryGreen;
+    if (widget.score > 0) return AppColors.primaryGreen;
+    return AppColors.textSecondary;
+  }
+
+  Color _getIconBgColor() {
+    if (_badgeEarned) return AppColors.amber.withValues(alpha: 0.15);
+    if (widget.score >= 3) return AppColors.primaryLight.withValues(alpha: 0.15);
+    if (widget.score > 0) return AppColors.mintGreen.withValues(alpha: 0.3);
+    return Colors.black.withValues(alpha: 0.05);
+  }
+
+  Color _getScoreColor() {
+    if (_badgeEarned) return AppColors.amber;
+    if (widget.score >= 3) return AppColors.primaryGreen;
+    if (widget.score > 0) return AppColors.primaryGreen;
+    return AppColors.textSecondary;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +101,7 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
       body: Stack(
         children: [
           CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -83,80 +134,137 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
                   centerTitle: true,
                 ),
               ),
-              SliverFillRemaining(
-                hasScrollBody: false,
+              SliverToBoxAdapter(
                 child: SafeArea(
                   top: false,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Icon/Illustration
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: _badgeEarned ? AppColors.amber.withValues(alpha: 0.1) : AppColors.primaryLight.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _badgeEarned ? Icons.workspace_premium_rounded : Icons.recycling_rounded,
-                              size: 80,
-                              color: _badgeEarned ? AppColors.amber : AppColors.primaryGreen,
-                            ),
-                          ).animate().scale(delay: 200.ms, duration: 500.ms, curve: Curves.elasticOut),
-                          
-                          const SizedBox(height: 32),
-                          
-                          const Text(
-                            'Your Score',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
-                            ),
-                          ).animate().fadeIn(delay: 400.ms),
-                          
-                          const SizedBox(height: 8),
-                          
-                          Text(
-                            '${widget.score} / ${widget.total}',
-                            style: TextStyle(
-                              fontSize: 56,
-                              fontWeight: FontWeight.w800,
-                              color: _badgeEarned ? AppColors.amber : AppColors.primaryGreen,
-                            ),
-                          ).animate().fadeIn(delay: 600.ms).scale(),
-                          
-                          const SizedBox(height: 16),
-                          
-                          Text(
-                            _badgeEarned 
-                              ? 'Perfect Score! You earned the Quiz Master badge!'
-                              : (widget.score > widget.total / 2 ? 'Great job! Keep learning.' : 'Good effort! Check the guides to learn more.'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 28.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Icon / Badge
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: _getIconBgColor(),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _getIcon(),
+                            size: 72,
+                            color: _getIconColor(),
+                          ),
+                        ).animate().scale(delay: 150.ms, duration: 500.ms, curve: Curves.elasticOut),
+                        
+                        const SizedBox(height: 24),
+
+                        // Headline
+                        Text(
+                          _getHeadline(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ).animate().fadeIn(delay: 300.ms),
+
+                        const SizedBox(height: 12),
+                        
+                        const Text(
+                          'Your Final Score',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ).animate().fadeIn(delay: 400.ms),
+                        
+                        const SizedBox(height: 4),
+                        
+                        Text(
+                          '${widget.score} / ${widget.total}',
+                          style: TextStyle(
+                            fontSize: 52,
+                            fontWeight: FontWeight.w800,
+                            color: _getScoreColor(),
+                          ),
+                        ).animate().fadeIn(delay: 500.ms).scale(),
+                        
+                        const SizedBox(height: 14),
+                        
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                          ),
+                          child: Text(
+                            _getFeedbackMessage(),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontSize: 16,
-                              height: 1.4,
+                              fontSize: 14.5,
+                              height: 1.45,
                               color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ).animate().fadeIn(delay: 800.ms),
-                          
-                          const SizedBox(height: 48),
-                          
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () => context.go('/home'),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ).animate().fadeIn(delay: 650.ms),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Action Buttons
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => context.pushReplacement('/quiz'),
+                            icon: const Icon(Icons.refresh_rounded, size: 20),
+                            label: const Text('TRY ANOTHER QUIZ'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              backgroundColor: AppColors.primaryGreen,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              child: const Text('BACK TO HOME'),
                             ),
-                          ).animate().fadeIn(delay: 1000.ms).slideY(begin: 0.2, end: 0),
-                        ],
-                      ),
+                          ),
+                        ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.15, end: 0),
+                        
+                        const SizedBox(height: 12),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => context.go('/home'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text(
+                              'BACK TO HOME',
+                              style: TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ).animate().fadeIn(delay: 900.ms).slideY(begin: 0.15, end: 0),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
@@ -164,19 +272,23 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
             ],
           ),
           
-          // Confetti overlay
+          // Confetti celebration overlay
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
               confettiController: _confettiController,
               blastDirectionality: BlastDirectionality.explosive,
               shouldLoop: false,
+              numberOfParticles: 25,
+              emissionFrequency: 0.05,
+              gravity: 0.3,
               colors: const [
                 AppColors.primaryGreen,
                 AppColors.primaryLight,
                 AppColors.mintGreen,
                 AppColors.amber,
-                Colors.blue,
+                Colors.orange,
+                Colors.lightBlue,
               ],
             ),
           ),
