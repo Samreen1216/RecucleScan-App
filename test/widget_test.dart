@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:recyclescan/features/history/history_screen.dart';
+import 'package:recyclescan/features/quiz/quiz_result_screen.dart';
+import 'package:recyclescan/features/quiz/quiz_screen.dart';
 import 'package:recyclescan/features/result/result_screen.dart';
 import 'package:recyclescan/features/scanner/scanner_screen.dart';
 import 'package:recyclescan/shared/widgets/app_shell.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 void main() {
   testWidgets('ResultScreen renders graceful Item Not Found fallback when item is null', (WidgetTester tester) async {
@@ -29,8 +32,8 @@ void main() {
       ),
     );
 
-    // Normally, the Scan FAB icon and BottomNavBar items are present
-    expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
+    // Normally, the Scan FAB and BottomNavBar items are present
+    expect(find.byType(AppSvgIcon), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('History'), findsOneWidget);
 
@@ -47,7 +50,7 @@ void main() {
     );
 
     // With keyboard open, FAB and BottomNavBar must NOT be present
-    expect(find.byIcon(Icons.qr_code_scanner_rounded), findsNothing);
+    expect(find.byType(AppSvgIcon), findsNothing);
     expect(find.text('Home'), findsNothing);
     expect(find.text('History'), findsNothing);
 
@@ -64,7 +67,7 @@ void main() {
     );
 
     // Restores normally
-    expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
+    expect(find.byType(AppSvgIcon), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('History'), findsOneWidget);
   });
@@ -100,6 +103,11 @@ void main() {
   });
 
   testWidgets('QuizScreen renders question, selects option, and shows Next Question button', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
@@ -107,15 +115,19 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('Recycle Quiz'), findsOneWidget);
     expect(find.textContaining('1 / 5'), findsOneWidget);
 
-    // Tap the first option
-    final firstOption = find.byType(InkWell).first;
-    await tester.tap(firstOption);
-    await tester.pumpAndSettle();
+    // Tap the first question option
+    final optionFinder = find.byWidgetPredicate(
+      (widget) => widget is InkWell && widget.child is Container,
+    );
+    await tester.tap(optionFinder.first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
     // Next question button should be visible
     expect(find.text('NEXT QUESTION'), findsOneWidget);
@@ -129,7 +141,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Quiz Results'), findsOneWidget);
     expect(find.text('0 / 5'), findsOneWidget);
@@ -147,10 +160,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('2 / 5'), findsOneWidget);
-    expect(find.text('Keep Learning! 🌱'), findsOneWidget);
+    expect(find.text('Keep Learning!'), findsOneWidget);
   });
 
   testWidgets('QuizResultScreen renders 4/5 score with Great Job', (WidgetTester tester) async {
@@ -161,10 +175,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('4 / 5'), findsOneWidget);
-    expect(find.text('Great Job! 🌿'), findsOneWidget);
+    expect(find.text('Great Job!'), findsOneWidget);
   });
 
   testWidgets('QuizResultScreen renders 5/5 score with Perfect Score badge', (WidgetTester tester) async {
@@ -175,11 +190,12 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('5 / 5'), findsOneWidget);
-    expect(find.text('Perfect Score! 🏆'), findsOneWidget);
-    expect(find.byIcon(Icons.workspace_premium_rounded), findsOneWidget);
+    expect(find.text('Perfect Score!'), findsOneWidget);
+    expect(find.byType(AppSvgIcon), findsOneWidget);
   });
 
   testWidgets('QuizScreen back button shows exit confirmation dialog and cancel keeps state', (WidgetTester tester) async {

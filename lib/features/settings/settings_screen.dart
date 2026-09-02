@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
 import 'package:recyclescan/core/providers/scan_history_provider.dart';
 import 'package:recyclescan/core/services/secure_storage_service.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -271,18 +273,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.eco_outlined,
                     iconColor: AppColors.organicColor,
                     title: 'Powered by RecycleScan',
-                    subtitle: 'Scan. Learn. Recycle. 🌿',
+                    subtitle: 'Scan. Learn. Recycle.',
                   ).animate().fadeIn(delay: 350.ms),
 
                   const SizedBox(height: 40),
 
                   // Footer
-                  const Center(
+                  Center(
                     child: Column(
                       children: [
-                        Text('♻️', style: TextStyle(fontSize: 32)),
-                        SizedBox(height: 8),
-                        Text(
+                        const AppSvgIcon(
+                          AppSvgs.recycleArrows,
+                          size: 36,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
                           'RecycleScan',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
@@ -290,7 +296,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             color: AppColors.primaryGreen,
                           ),
                         ),
-                        Text(
+                        const Text(
                           'Making recycling effortless, one scan at a time.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -434,7 +440,7 @@ class _StatsCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _StatItem(
-            emoji: '🔍',
+            svgAsset: AppSvgs.scanViewfinder,
             value: '$itemCount',
             label: 'Items Scanned',
           ),
@@ -444,7 +450,7 @@ class _StatsCard extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.3),
           ),
           const _StatItem(
-            emoji: '♻️',
+            svgAsset: AppSvgs.ecoLeaf,
             value: 'Active',
             label: 'Eco Status',
           ),
@@ -454,7 +460,7 @@ class _StatsCard extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.3),
           ),
           const _StatItem(
-            emoji: '🌱',
+            svgAsset: AppSvgs.verifiedCheck,
             value: '1.0.0',
             label: 'App Version',
           ),
@@ -465,12 +471,12 @@ class _StatsCard extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  final String emoji;
+  final String svgAsset;
   final String value;
   final String label;
 
   const _StatItem({
-    required this.emoji,
+    required this.svgAsset,
     required this.value,
     required this.label,
   });
@@ -479,8 +485,8 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 4),
+        AppSvgIcon(svgAsset, size: 24, color: Colors.white),
+        const SizedBox(height: 6),
         Text(
           value,
           style: const TextStyle(

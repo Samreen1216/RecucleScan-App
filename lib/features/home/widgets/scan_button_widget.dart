@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class ScanButtonWidget extends StatefulWidget {
   final VoidCallback onTap;
@@ -58,26 +60,28 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
         ),
         child: Stack(
           children: [
-            // Background leaf decoration
-            const Positioned(
+            // Background decoration icons
+            Positioned(
               right: -20,
               bottom: -20,
               child: Opacity(
-                opacity: 0.15,
-                child: Text(
-                  '🍃',
-                  style: TextStyle(fontSize: 100),
+                opacity: 0.12,
+                child: const AppSvgIcon(
+                  AppSvgs.ecoLeaf,
+                  size: 110,
+                  color: Colors.white,
                 ),
               ),
             ),
-            const Positioned(
+            Positioned(
               left: -10,
               top: -15,
               child: Opacity(
-                opacity: 0.1,
-                child: Text(
-                  '🌿',
-                  style: TextStyle(fontSize: 80),
+                opacity: 0.08,
+                child: const AppSvgIcon(
+                  AppSvgs.recycleArrows,
+                  size: 90,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -98,10 +102,12 @@ class _ScanButtonWidgetState extends State<ScanButtonWidget>
                             color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.qr_code_scanner,
-                            color: Colors.white,
-                            size: 32,
+                          child: const Center(
+                            child: AppSvgIcon(
+                              AppSvgs.scanViewfinder,
+                              color: Colors.white,
+                              size: 32,
+                            ),
                           ),
                         ),
                       );

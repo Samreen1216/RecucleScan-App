@@ -54,3 +54,35 @@ class AppColors {
   static const Color shadow = Color(0x1A000000);
   static const Color overlay = Color(0x80000000);
 }
+
+class AppRadius {
+  AppRadius._();
+
+  /// Small controls, sub-elements (8dp)
+  static const double sm = 8.0;
+  static const Radius radiusSm = Radius.circular(sm);
+  static final BorderRadius borderSm = BorderRadius.circular(sm);
+
+  /// Standard buttons, input fields, chips (12dp - 14dp)
+  static const double md = 12.0;
+  static const Radius radiusMd = Radius.circular(md);
+  static final BorderRadius borderMd = BorderRadius.circular(md);
+
+  static const double lg = 16.0;
+  static const Radius radiusLg = Radius.circular(lg);
+  static final BorderRadius borderLg = BorderRadius.circular(lg);
+
+  /// Cards, modals, dialogs (20dp)
+  static const double xl = 20.0;
+  static const Radius radiusXl = Radius.circular(xl);
+  static final BorderRadius borderXl = BorderRadius.circular(xl);
+
+  /// Large feature headers, bottom sheet tops (24dp)
+  static const double xxl = 24.0;
+  static const Radius radiusXxl = Radius.circular(xxl);
+  static final BorderRadius borderXxl = BorderRadius.circular(xxl);
+
+  /// Full pills / circular badges
+  static const double full = 999.0;
+  static final BorderRadius borderFull = BorderRadius.circular(full);
+}

@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -19,21 +21,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingData> _pages = const [
     _OnboardingData(
-      emoji: '📷',
+      svgAsset: AppSvgs.scanViewfinder,
       title: AppStrings.onboarding1Title,
       description: AppStrings.onboarding1Desc,
       color: AppColors.primaryGreen,
       bgColor: AppColors.lightMint,
     ),
     _OnboardingData(
-      emoji: '♻️',
+      svgAsset: AppSvgs.recycleArrows,
       title: AppStrings.onboarding2Title,
       description: AppStrings.onboarding2Desc,
       color: AppColors.glassColor,
       bgColor: AppColors.glassLight,
     ),
     _OnboardingData(
-      emoji: '🌿',
+      svgAsset: AppSvgs.ecoLeaf,
       title: AppStrings.onboarding3Title,
       description: AppStrings.onboarding3Desc,
       color: AppColors.organicColor,
@@ -160,7 +162,7 @@ class _OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Emoji in colored circle
+          // Icon in colored circle
           Container(
             width: 200,
             height: 200,
@@ -169,9 +171,10 @@ class _OnboardingPage extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                data.emoji,
-                style: const TextStyle(fontSize: 80),
+              child: AppSvgIcon(
+                data.svgAsset,
+                size: 88,
+                color: data.color,
               ),
             ),
           )
@@ -215,14 +218,14 @@ class _OnboardingPage extends StatelessWidget {
 }
 
 class _OnboardingData {
-  final String emoji;
+  final String svgAsset;
   final String title;
   final String description;
   final Color color;
   final Color bgColor;
 
   const _OnboardingData({
-    required this.emoji,
+    required this.svgAsset,
     required this.title,
     required this.description,
     required this.color,

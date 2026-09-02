@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/models/recycling_category.dart';
 import 'package:recyclescan/core/models/scan_item.dart';
 import 'package:recyclescan/core/providers/scan_history_provider.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 import 'package:intl/intl.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -222,7 +224,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('📭', style: TextStyle(fontSize: 60)),
+                    const AppSvgIcon(
+                      AppSvgs.historyClock,
+                      size: 64,
+                      color: AppColors.textLight,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       history.isEmpty

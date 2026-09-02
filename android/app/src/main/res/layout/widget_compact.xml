@@ -224,7 +224,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Eco Tip 🍃"
+                        android:text="Eco Tip"
                         android:textSize="12sp"
                         android:textStyle="bold"
                         android:textColor="#1F2937" />

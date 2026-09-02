@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
 import 'package:recyclescan/core/constants/recycling_data.dart';
 import 'package:recyclescan/core/providers/scanner_provider.dart';
 import 'package:recyclescan/core/services/barcode_lookup_service.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class ScannerScreen extends ConsumerStatefulWidget {
   const ScannerScreen({super.key});
@@ -337,7 +339,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
           children: [
             Container(width: 40, height: 4, color: Colors.grey[300]),
             const SizedBox(height: 20),
-            const Text('🔍', style: TextStyle(fontSize: 40)),
+            const AppSvgIcon(AppSvgs.searchOff, size: 48, color: AppColors.textSecondary),
             const SizedBox(height: 10),
             const Text(
               'Product Not in Database',
@@ -404,10 +406,16 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 
   void _handleBack() {
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/home');
+    try {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
+    } catch (_) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -517,7 +525,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                 child: Text(
                   isBarcodeMode
                       ? 'Point at a barcode — auto-detects!'
-                      : 'Align item in frame, then tap 📷',
+                      : 'Align item in frame, then tap Shutter',
                   style: const TextStyle(
                       color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
                 ),
@@ -546,7 +554,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _ModePill(
-                            title: '🤖 AI Vision',
+                            title: 'AI Vision',
+                            svgAsset: AppSvgs.aiSparkle,
                             isActive: !isBarcodeMode,
                             onTap: () async {
                               ref
@@ -556,7 +565,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                             },
                           ),
                           _ModePill(
-                            title: '📷 Barcode',
+                            title: 'Barcode',
+                            svgAsset: AppSvgs.qrCode,
                             isActive: isBarcodeMode,
                             onTap: () async {
                               ref
@@ -606,14 +616,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         children: [
-                          _SampleChip(label: '🥤 PET Bottle', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('PET Bottle')),
-                          _SampleChip(label: '🍕 Pizza Box', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Pizza Box')),
-                          _SampleChip(label: '🥫 Alum Can', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Aluminum Can')),
-                          _SampleChip(label: '🔋 Battery', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Lithium Battery')),
-                          _SampleChip(label: '🫙 Glass Jar', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Glass Jar')),
-                          _SampleChip(label: '🍌 Banana', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Banana Peel')),
-                          _SampleChip(label: '📦 Cardboard', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Cardboard Box')),
-                          _SampleChip(label: '☕ Coffee Cup', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Coffee Cup')),
+                          _SampleChip(label: 'PET Bottle', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('PET Bottle')),
+                          _SampleChip(label: 'Pizza Box', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Pizza Box')),
+                          _SampleChip(label: 'Aluminum Can', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Aluminum Can')),
+                          _SampleChip(label: 'Battery', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Lithium Battery')),
+                          _SampleChip(label: 'Glass Jar', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Glass Jar')),
+                          _SampleChip(label: 'Banana Peel', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Banana Peel')),
+                          _SampleChip(label: 'Cardboard', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Cardboard Box')),
+                          _SampleChip(label: 'Coffee Cup', onTap: () => ref.read(scannerProvider.notifier).analyzeSample('Coffee Cup')),
                         ],
                       ),
                     ),
@@ -726,8 +736,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
                         const SizedBox(height: 20),
                         Text(
                           isBarcodeMode
-                              ? '🔍 Looking up product…'
-                              : '🤖 Identifying object…',
+                              ? 'Looking up product…'
+                              : 'Identifying object…',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 16,
@@ -890,9 +900,17 @@ class _CircleButton extends StatelessWidget {
 
 class _ModePill extends StatelessWidget {
   final String title;
+  final IconData? icon;
+  final String? svgAsset;
   final bool isActive;
   final VoidCallback onTap;
-  const _ModePill({required this.title, required this.isActive, required this.onTap});
+  const _ModePill({
+    required this.title,
+    this.icon,
+    this.svgAsset,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -904,13 +922,33 @@ class _ModePill extends StatelessWidget {
             color: isActive ? AppColors.primaryGreen : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.white : Colors.white70,
-              fontSize: 12,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (svgAsset != null) ...[
+                AppSvgIcon(
+                  svgAsset!,
+                  size: 15,
+                  color: isActive ? Colors.white : Colors.white70,
+                ),
+                const SizedBox(width: 5),
+              ] else if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 15,
+                  color: isActive ? Colors.white : Colors.white70,
+                ),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                title,
+                style: TextStyle(
+                  color: isActive ? Colors.white : Colors.white70,
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -928,7 +966,7 @@ class _SampleChip extends StatelessWidget {
           label: Text(label,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
           backgroundColor: Colors.white.withValues(alpha: 0.9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           side: BorderSide.none,
           onPressed: onTap,
         ),

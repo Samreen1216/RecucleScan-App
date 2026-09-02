@@ -98,7 +98,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Great job! 🍃"
+                        android:text="Great job!"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF" />
@@ -343,7 +343,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Eco Tip 🍃"
+                        android:text="Eco Tip"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#1F2937" />

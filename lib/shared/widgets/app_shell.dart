@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class AppShell extends StatelessWidget {
   final Widget child;
@@ -8,11 +10,13 @@ class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
 
   int _locationToIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/history')) return 1;
-    if (location.startsWith('/guide')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    try {
+      final location = GoRouterState.of(context).uri.path;
+      if (location.startsWith('/home')) return 0;
+      if (location.startsWith('/history')) return 1;
+      if (location.startsWith('/guide')) return 2;
+      if (location.startsWith('/settings')) return 3;
+    } catch (_) {}
     return 0;
   }
 
@@ -120,10 +124,12 @@ class _CenterScanFABState extends State<_CenterScanFAB>
             ],
             border: Border.all(color: Colors.white, width: 3),
           ),
-          child: const Icon(
-            Icons.qr_code_scanner_rounded,
-            color: Colors.white,
-            size: 30,
+          child: const Center(
+            child: AppSvgIcon(
+              AppSvgs.scanViewfinder,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ),
       ),

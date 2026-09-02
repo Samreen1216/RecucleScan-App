@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class RecycleQuizWidget extends ConsumerWidget {
   final VoidCallback onStartQuiz;
@@ -14,7 +16,7 @@ class RecycleQuizWidget extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFE8F5E9), // Soft light-green background
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.primaryGreen.withValues(alpha: 0.2),
           width: 1.5,
@@ -37,7 +39,11 @@ class RecycleQuizWidget extends ConsumerWidget {
               color: Colors.white.withValues(alpha: 0.6),
               shape: BoxShape.circle,
             ),
-            child: const Text('📋🌿', style: TextStyle(fontSize: 26)),
+            child: const AppSvgIcon(
+              AppSvgs.quizBadge,
+              color: AppColors.primaryGreen,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           

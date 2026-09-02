@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
 import 'package:recyclescan/core/constants/app_strings.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
 import 'package:recyclescan/core/models/recycling_category.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class DisposalStepsWidget extends StatelessWidget {
   final RecyclingCategory category;
@@ -62,14 +64,14 @@ class DisposalStepsWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: category.lightColor,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border:
                 Border.all(color: category.color.withValues(alpha: 0.25)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🌟', style: TextStyle(fontSize: 22)),
+              AppSvgIcon(AppSvgs.aiSparkle, color: category.color, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
 import 'package:recyclescan/core/providers/badge_provider.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:confetti/confetti.dart';
 
@@ -27,18 +29,21 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController = ConfettiController(duration: const Duration(seconds: 4));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.score == widget.total && widget.total > 0) {
-        setState(() => _badgeEarned = true);
+    // Only play confetti if score is passing/good (>= 3 out of 5)
+    // NEVER play confetti on 0/5 or poor scores
+    if (widget.score >= 3) {
+      _confettiController.play();
+    }
+
+    // Award Quiz Master badge for perfect score
+    if (widget.score == widget.total && widget.total > 0) {
+      _badgeEarned = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(badgeProvider.notifier).earnBadge();
-      }
-      // Play celebratory confetti ONLY for scores >= 3 (no celebration for 0/5 or 1-2/5)
-      if (widget.score >= 3) {
-        _confettiController.play();
-      }
-    });
+      });
+    }
   }
 
   @override
@@ -48,9 +53,9 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   }
 
   String _getHeadline() {
-    if (widget.score == widget.total && widget.total > 0) return 'Perfect Score! 🏆';
-    if (widget.score >= 3) return 'Great Job! 🌿';
-    if (widget.score > 0) return 'Keep Learning! 🌱';
+    if (widget.score == widget.total && widget.total > 0) return 'Perfect Score!';
+    if (widget.score >= 3) return 'Great Job!';
+    if (widget.score > 0) return 'Keep Learning!';
     return 'Oops! Better Luck Next Time';
   }
 
@@ -66,11 +71,11 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     }
   }
 
-  IconData _getIcon() {
-    if (_badgeEarned) return Icons.workspace_premium_rounded;
-    if (widget.score >= 3) return Icons.eco_rounded;
-    if (widget.score > 0) return Icons.lightbulb_outline_rounded;
-    return Icons.sentiment_neutral_rounded;
+  String _getSvgAsset() {
+    if (_badgeEarned) return AppSvgs.trophyBadge;
+    if (widget.score >= 3) return AppSvgs.ecoLeaf;
+    if (widget.score > 0) return AppSvgs.lightbulb;
+    return AppSvgs.quizBadge;
   }
 
   Color _getIconColor() {
@@ -150,8 +155,8 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
                             color: _getIconBgColor(),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            _getIcon(),
+                          child: AppSvgIcon(
+                            _getSvgAsset(),
                             size: 72,
                             color: _getIconColor(),
                           ),

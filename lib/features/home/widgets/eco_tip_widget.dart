@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:recyclescan/core/constants/app_colors.dart';
+import 'package:recyclescan/core/constants/app_svgs.dart';
+import 'package:recyclescan/shared/widgets/app_svg_icon.dart';
 
 class EcoTipWidget extends StatelessWidget {
   final String tip;
@@ -36,7 +38,11 @@ class EcoTipWidget extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.7),
               shape: BoxShape.circle,
             ),
-            child: const Text('💡🌱', style: TextStyle(fontSize: 24)),
+            child: const AppSvgIcon(
+              AppSvgs.lightbulb,
+              color: AppColors.primaryGreen,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           
@@ -67,8 +73,12 @@ class EcoTipWidget extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           
-          // Right side: Recycling bin illustration
-          const Text('♻️', style: TextStyle(fontSize: 32)),
+          // Right side: Eco leaf icon
+          const AppSvgIcon(
+            AppSvgs.ecoLeaf,
+            color: AppColors.primaryGreen,
+            size: 28,
+          ),
         ],
       ),
     );
