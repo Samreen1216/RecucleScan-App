@@ -75,105 +75,112 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           filtered.where((i) => i.categoryId == _filterCategory).toList();
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // App bar
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 130,
-            backgroundColor: AppColors.background,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primaryGreen, AppColors.primaryLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        resizeToAvoidBottomInset: true,
+        body: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            // App bar
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 130,
+              backgroundColor: AppColors.background,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primaryGreen, AppColors.primaryLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const Text(
-                              ' ${AppStrings.historyTitle}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              const Text(
+                                ' ${AppStrings.historyTitle}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${history.length} item${history.length == 1 ? '' : 's'} scanned',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 13,
+                              Text(
+                                '${history.length} item${history.length == 1 ? '' : 's'} scanned',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ),
-                        if (history.isNotEmpty)
-                          TextButton.icon(
-                            onPressed: _confirmClearAll,
-                            icon: const Icon(Icons.delete_sweep_outlined,
-                                color: Colors.white70, size: 18),
-                            label: const Text(
-                              AppStrings.clearAll,
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 13),
-                            ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
-                      ],
+                          if (history.isNotEmpty)
+                            TextButton.icon(
+                              onPressed: _confirmClearAll,
+                              icon: const Icon(Icons.delete_sweep_outlined,
+                                  color: Colors.white70, size: 18),
+                              label: const Text(
+                                AppStrings.clearAll,
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 13),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
 
-          // Search + Filter
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Column(
-                children: [
-                  // Search bar
-                  TextField(
-                    controller: _searchController,
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    decoration: InputDecoration(
-                      hintText: AppStrings.searchHistory,
-                      hintStyle: const TextStyle(
-                          color: AppColors.textLight, fontSize: 14),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.textSecondary),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear,
-                                  color: AppColors.textSecondary),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            )
-                          : null,
+            // Search + Filter
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Column(
+                  children: [
+                    // Search bar
+                    TextField(
+                      controller: _searchController,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: AppStrings.searchHistory,
+                        hintStyle: const TextStyle(
+                            color: AppColors.textLight, fontSize: 14),
+                        prefixIcon: const Icon(Icons.search,
+                            color: AppColors.textSecondary),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear,
+                                    color: AppColors.textSecondary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                            : null,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
                   // Category filter chips
                   SizedBox(
                     height: 36,
@@ -267,7 +274,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

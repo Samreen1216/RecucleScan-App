@@ -19,33 +19,39 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _locationToIndex(context);
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: child,
-      // Floating center scan button
-      floatingActionButton: _CenterScanFAB(
-        onTap: () => context.push('/scanner'),
-      ),
+      // Floating center scan button — hidden when keyboard opens to prevent floating above keyboard
+      floatingActionButton: isKeyboardOpen
+          ? null
+          : _CenterScanFAB(
+              onTap: () => context.push('/scanner'),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _BottomNavBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/history');
-              break;
-            case 2:
-              context.go('/guide');
-              break;
-            case 3:
-              context.go('/settings');
-              break;
-          }
-        },
-      ),
+      bottomNavigationBar: isKeyboardOpen
+          ? null
+          : _BottomNavBar(
+              currentIndex: currentIndex,
+              onTap: (index) {
+                switch (index) {
+                  case 0:
+                    context.go('/home');
+                    break;
+                  case 1:
+                    context.go('/history');
+                    break;
+                  case 2:
+                    context.go('/guide');
+                    break;
+                  case 3:
+                    context.go('/settings');
+                    break;
+                }
+              },
+            ),
     );
   }
 }
